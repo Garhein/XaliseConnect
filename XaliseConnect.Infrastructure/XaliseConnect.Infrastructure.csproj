@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\XaliseConnect.Application\XaliseConnect.Application.csproj" />
+    <ProjectReference Include="..\XaliseConnect.Contracts\XaliseConnect.Contracts.csproj" />
+    <ProjectReference Include="..\XaliseConnect.Domain\XaliseConnect.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

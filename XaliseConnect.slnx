@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="XaliseConnect.Application/XaliseConnect.Application.csproj" />
+  <Project Path="XaliseConnect.Contracts/XaliseConnect.Contracts.csproj" />
+  <Project Path="XaliseConnect.Domain/XaliseConnect.Domain.csproj" />
+  <Project Path="XaliseConnect.Infrastructure/XaliseConnect.Infrastructure.csproj" />
+  <Project Path="XaliseConnect.Orchestrator/XaliseConnect.Orchestrator.csproj" Id="97c6ef50-0ed3-43d3-a039-11aa3bbef798" />
+  <Project Path="XaliseConnect.Portal/XaliseConnect.Portal.csproj" Id="072c837d-5dcf-41c6-ae40-2261956ea10a" />
+  <Project Path="XaliseConnect.Receiver/XaliseConnect.Receiver.csproj" Id="ee5b08c9-3611-4b4b-8cb4-c5e496131ec2" />
+</Solution>
