@@ -6,4 +6,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Entities\Audit\" />
+    <Folder Include="Entities\Instance\" />
+    <Folder Include="Entities\Workflow\" />
+    <Folder Include="Enums\" />
+  </ItemGroup>
+
 </Project>
