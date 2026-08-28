@@ -6,9 +6,9 @@
     public sealed class SourceType : BaseEntity
     {
         /// <summary>
-        /// Description du type de source.
+        /// Libellé du type de source.
         /// </summary>
-        public string Description { get; private set; } = string.Empty;
+        public string Label { get; private set; } = string.Empty;
 
         /// <summary>
         /// Constructeur réservé à l'infrastructure (EF Core).
@@ -16,14 +16,14 @@
         private SourceType() { }
 
         /// <summary>
-        /// Constructeur public pour créer une instance de <see cref="SourceType"/> avec une description.
+        /// Constructeur public pour créer une instance de <see cref="SourceType"/> avec un libellé.
         /// </summary>
-        /// <param name="description">Description du type de source.</param>
-        public SourceType(string description)
+        /// <param name="label">Libellé du type de source.</param>
+        public SourceType(string label)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(description, nameof(description));
+            ArgumentException.ThrowIfNullOrWhiteSpace(label, nameof(label));
 
-            this.Description = description;
+            this.Label = label;
         }
     }
 }

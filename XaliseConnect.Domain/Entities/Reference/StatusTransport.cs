@@ -6,9 +6,9 @@
     public sealed class StatusTransport : BaseEntity
     {
         /// <summary>
-        /// Description du statut de transport.
+        /// Libellé du statut de transport.
         /// </summary>
-        public string Description { get; private set; } = string.Empty;
+        public string Label { get; private set; } = string.Empty;
 
         /// <summary>
         /// Constructeur réservé à l'infrastructure (EF Core).
@@ -16,14 +16,14 @@
         private StatusTransport() { }
 
         /// <summary>
-        /// Constructeur public pour créer une instance de <see cref="StatusTransport"/> avec une description.
+        /// Constructeur public pour créer une instance de <see cref="StatusTransport"/> avec un libellé.
         /// </summary>
-        /// <param name="description">Description du statut de transport.</param>
-        public StatusTransport(string description)
+        /// <param name="label">Libellé du statut de transport.</param>
+        public StatusTransport(string label)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(description, nameof(description));
+            ArgumentException.ThrowIfNullOrWhiteSpace(label, nameof(label));
 
-            this.Description = description;
+            this.Label = label;
         }
     }
 }

@@ -6,9 +6,9 @@
     public sealed class StatusIntegration : BaseEntity
     {
         /// <summary>
-        /// Description du statut d'intégration.
+        /// Libellé du statut d'intégration.
         /// </summary>
-        public string Description { get; private set; } = string.Empty;
+        public string Label { get; private set; } = string.Empty;
 
         /// <summary>
         /// Constructeur réservé à l'infrastructure (EF Core).
@@ -16,14 +16,14 @@
         private StatusIntegration() { }
 
         /// <summary>
-        /// Constructeur public pour créer une instance de <see cref="StatusIntegration"/> avec une description.
+        /// Constructeur public pour créer une instance de <see cref="StatusIntegration"/> avec un libellé.
         /// </summary>
-        /// <param name="description">Description du statut d'intégration.</param>
-        public StatusIntegration(string description)
+        /// <param name="label">Libellé du statut d'intégration.</param>
+        public StatusIntegration(string label)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(description, nameof(description));
+            ArgumentException.ThrowIfNullOrWhiteSpace(label, nameof(label));
 
-            this.Description = description;
+            this.Label = label;
         }
     }
 }

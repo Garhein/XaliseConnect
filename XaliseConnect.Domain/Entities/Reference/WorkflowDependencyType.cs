@@ -6,9 +6,9 @@
     public sealed class WorkflowDependencyType : BaseEntity
     {
         /// <summary>
-        /// Description du type de dépendance de workflow.
+        /// Libellé du type de dépendance de workflow.
         /// </summary>
-        public string Description { get; private set; } = string.Empty;
+        public string Label { get; private set; } = string.Empty;
 
         /// <summary>
         /// Constructeur réservé à l'infrastructure (EF Core).
@@ -16,14 +16,14 @@
         private WorkflowDependencyType() { }
 
         /// <summary>
-        /// Constructeur public pour créer une instance de <see cref="WorkflowDependencyType"/> avec une description.
+        /// Constructeur public pour créer une instance de <see cref="WorkflowDependencyType"/> avec un libellé.
         /// </summary>
-        /// <param name="description">Description du type de dépendance de workflow.</param>
-        public WorkflowDependencyType(string description)
+        /// <param name="label">Libellé du type de dépendance de workflow.</param>
+        public WorkflowDependencyType(string label)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(description, nameof(description));
+            ArgumentException.ThrowIfNullOrWhiteSpace(label, nameof(label));
 
-            this.Description = description;
+            this.Label = label;
         }
     }
 }
