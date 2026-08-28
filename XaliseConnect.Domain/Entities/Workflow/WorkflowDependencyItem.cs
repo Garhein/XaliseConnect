@@ -18,11 +18,17 @@
         /// <summary>
         /// Événement du flux auquel appartient l'élément de dépendance.
         /// </summary>
+        /// <remarks>
+        /// Désigne un événement requis.
+        /// </remarks>
         public int WorkflowEventId { get; private set; }
 
         /// <summary>
         /// Événement du flux auquel appartient l'élément de dépendance.
         /// </summary>
+        /// <remarks>
+        /// Désigne un événement requis.
+        /// </remarks>
         public WorkflowEvent WorkflowEvent { get; private set; } = null!;
 
         /// <summary>
