@@ -110,12 +110,24 @@ namespace XaliseConnect.Domain.Entities.Workflow
             this.EventType = eventType;
             this.SourceId = source.Id;
             this.Source = source;
-            this.CurrentStatusReceptionId = currentStatusReception.Id;
-            this.CurrentStatusReception = currentStatusReception;
-            this.CurrentStatusTransportId = currentStatusTransport.Id;
-            this.CurrentStatusTransport = currentStatusTransport;
-            this.CurrentStatusIntegrationId = currentStatusIntegration.Id;
-            this.CurrentStatusIntegration = currentStatusIntegration;
+
+            if (currentStatusReception != null)
+            {
+                this.CurrentStatusReceptionId = currentStatusReception.Id;
+                this.CurrentStatusReception = currentStatusReception;
+            }
+
+            if (currentStatusTransport != null)
+            {
+                this.CurrentStatusTransportId = currentStatusTransport.Id;
+                this.CurrentStatusTransport = currentStatusTransport;
+            }
+
+            if (currentStatusIntegration != null)
+            {
+                this.CurrentStatusIntegrationId = currentStatusIntegration.Id;
+                this.CurrentStatusIntegration = currentStatusIntegration;
+            }
         }
     }
 }
