@@ -1,4 +1,5 @@
 ﻿using XaliseConnect.Domain.Entities.Configuration;
+using XaliseConnect.Domain.Entities.Instance;
 using XaliseConnect.Domain.Entities.Reference;
 
 namespace XaliseConnect.Domain.Entities.Workflow
@@ -74,6 +75,16 @@ namespace XaliseConnect.Domain.Entities.Workflow
         public StatusIntegration CurrentStatusIntegration { get; private set; } = null!;
 
         /// <summary>
+        /// Identifiant de l'instance du flux associée à la demande d'intégration.
+        /// </summary>
+        public int? WorkflowInstanceId { get; private set; }
+
+        /// <summary>
+        /// Référence de l'instance du flux associée à la demande d'intégration.
+        /// </summary>
+        public WorkflowInstance WorkflowInstance { get; private set; } = null!;
+
+        /// <summary>
         /// Constructeur réservé à l'infrastructure (EF Core).
         /// </summary>
         private IntegrationRequest() { }
@@ -89,6 +100,7 @@ namespace XaliseConnect.Domain.Entities.Workflow
         /// <param name="currentStatusReception">Statut de réception actuel de la demande d'intégration.</param>
         /// <param name="currentStatusTransport">Statut de transport actuel de la demande d'intégration.</param>
         /// <param name="currentStatusIntegration">Statut d'intégration actuel de la demande d'intégration.</param>
+        /// <param name="workflowInstance">Instance du flux associée à la demande d'intégration.</param>
         public IntegrationRequest(DateTime receivedAt,
                                   string rawMessage,
                                   string sourceReference,
@@ -96,7 +108,8 @@ namespace XaliseConnect.Domain.Entities.Workflow
                                   Source source,
                                   StatusReception currentStatusReception, 
                                   StatusTransport currentStatusTransport, 
-                                  StatusIntegration currentStatusIntegration)
+                                  StatusIntegration currentStatusIntegration,
+                                  WorkflowInstance workflowInstance)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(rawMessage, nameof(rawMessage));
             ArgumentException.ThrowIfNullOrWhiteSpace(sourceReference, nameof(sourceReference));
@@ -127,6 +140,12 @@ namespace XaliseConnect.Domain.Entities.Workflow
             {
                 this.CurrentStatusIntegrationId = currentStatusIntegration.Id;
                 this.CurrentStatusIntegration = currentStatusIntegration;
+            }
+
+            if (workflowInstance != null)
+            {
+                this.WorkflowInstanceId = workflowInstance.Id;
+                this.WorkflowInstance = workflowInstance;
             }
         }
     }
