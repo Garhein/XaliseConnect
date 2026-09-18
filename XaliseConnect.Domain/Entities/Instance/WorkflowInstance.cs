@@ -8,7 +8,7 @@
         /// <summary>
         /// Date et heure de création de l'instance du flux.
         /// </summary>
-        public DateTime CreatedAt { get; private set;  } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 
         /// <summary>
         /// Date et heure de la dernière réception d'un événement pour cette instance du flux.
@@ -47,11 +47,34 @@
             ArgumentException.ThrowIfNullOrWhiteSpace(correlationRuleValue, nameof(correlationRuleValue));
             ArgumentNullException.ThrowIfNull(workflow, nameof(workflow));
 
+            if (lastEventReceivedAt < createdAt)
+            {
+                throw new InvalidOperationException("Un événement ne peut pas être antérieur à l'instance.");
+            }
+
             this.CreatedAt = createdAt;
             this.LastEventReceivedAt = lastEventReceivedAt;
             this.CorrelationRuleValue = correlationRuleValue;
             this.WorkflowId = workflow.Id;
             this.Workflow = workflow;
+        }
+
+        /// <summary>
+        /// Met à jour la date et l'heure de la dernière réception d'un événement pour cette instance du flux.
+        /// </summary>
+        /// <param name="receivedAt">Date et heure de la dernière réception d'un événement.</param>
+        /// <exception cref="InvalidOperationException">Levée lorsque <paramref name="receivedAt"/> est antérieur à la date de création de l'instance de workflow.</exception>
+        public void UpdateLastEventReceivedAt(DateTime receivedAt)
+        {
+            if (receivedAt < this.CreatedAt)
+            {
+                throw new InvalidOperationException("Un événement ne peut pas être antérieur à l'instance.");
+            }
+
+            if (receivedAt > this.LastEventReceivedAt)
+            {
+                this.LastEventReceivedAt = receivedAt;
+            }
         }
     }
 }

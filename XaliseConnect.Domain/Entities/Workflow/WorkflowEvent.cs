@@ -8,6 +8,11 @@ namespace XaliseConnect.Domain.Entities.Workflow
     public sealed class WorkflowEvent : BaseEntity
     {
         /// <summary>
+        /// Collection des groupes de dépendances associés à l'événement.
+        /// </summary>
+        private readonly List<WorkflowDependencyGroup> _dependencyGroups = [];
+
+        /// <summary>
         /// Indique <see langword="true"/> si l'événement peut être rejoué, sinon <see langword="false"/>.
         /// </summary>
         public bool CanReplay { get; private set; }
@@ -53,12 +58,17 @@ namespace XaliseConnect.Domain.Entities.Workflow
         public EventType EventType { get; private set; } = null!;
 
         /// <summary>
+        /// Collection des groupes de dépendances associés à l'événement.
+        /// </summary>
+        public IReadOnlyCollection<WorkflowDependencyGroup> DependencyGroups => this._dependencyGroups.AsReadOnly();
+
+        /// <summary>
         /// Constructeur réservé à l'infrastructure (EF Core).
         /// </summary>
         private WorkflowEvent() { }
 
         /// <summary>
-        /// Constructeur public pour créer une instance de <see cref="WorkflowEvent"/> avec les propriétés spécifiées.
+        /// Constructeur pour créer une instance de <see cref="WorkflowEvent"/> avec les propriétés spécifiées.
         /// </summary>
         /// <param name="canReplay"><see langword="true"/> si l'événement peut être rejoué, sinon <see langword="false"/>.</param>
         /// <param name="executionOrder">Ordre d'exécution de l'événement dans le flux.</param>
@@ -66,10 +76,10 @@ namespace XaliseConnect.Domain.Entities.Workflow
         /// <param name="maxOccurrences">Nombre maximum d'occurrences de l'événement dans le flux.</param>
         /// <param name="workflow">Flux associé à l'événement.</param>
         /// <param name="eventType">Type d'événement associé à l'événement.</param>
-        public WorkflowEvent(bool canReplay, int executionOrder, int minOccurrences, int? maxOccurrences, Workflow workflow, EventType eventType)
+        internal WorkflowEvent(bool canReplay, int executionOrder, int minOccurrences, int? maxOccurrences, Workflow workflow, EventType eventType)
         {
             ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(executionOrder, 0, nameof(executionOrder));
-            ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(minOccurrences, 0, nameof(minOccurrences));
+            ArgumentOutOfRangeException.ThrowIfNegative(minOccurrences, nameof(minOccurrences));
             ArgumentNullException.ThrowIfNull(workflow, nameof(workflow));
             ArgumentNullException.ThrowIfNull(eventType, nameof(eventType));
 
@@ -86,6 +96,23 @@ namespace XaliseConnect.Domain.Entities.Workflow
             this.WorkflowId = workflow.Id;
             this.EventType = eventType;
             this.EventTypeId = eventType.Id;
+        }
+
+        /// <summary>
+        /// Ajoute un groupe de dépendances à l'événement.
+        /// </summary>
+        /// <param name="workflowDependencyType">Type de dépendance appliqué au groupe.</param>
+        /// <returns>Le groupe de dépendances ajouté.</returns>
+        /// <exception cref="ArgumentNullException">Levée lorsque <paramref name="workflowDependencyType"/> est <see langword="null"/>.</exception>
+        public WorkflowDependencyGroup AddDependencyGroup(WorkflowDependencyType workflowDependencyType)
+        {
+            ArgumentNullException.ThrowIfNull(workflowDependencyType, nameof(workflowDependencyType));
+
+            WorkflowDependencyGroup workflowDependencyGroup = new WorkflowDependencyGroup(this, workflowDependencyType);
+
+            this._dependencyGroups.Add(workflowDependencyGroup);
+
+            return workflowDependencyGroup;
         }
     }
 }

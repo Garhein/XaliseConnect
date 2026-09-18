@@ -1,4 +1,5 @@
 ﻿using XaliseConnect.Domain.Entities.Configuration;
+using XaliseConnect.Domain.Entities.Reference;
 
 namespace XaliseConnect.Domain.Entities.Workflow
 {
@@ -7,6 +8,11 @@ namespace XaliseConnect.Domain.Entities.Workflow
     /// </summary>
     public sealed class Workflow : BaseEntity
     {
+        /// <summary>
+        /// Collection des événements associés au flux.
+        /// </summary>
+        private readonly List<WorkflowEvent> _events = [];
+
         /// <summary>
         /// Libellé du flux.
         /// </summary>
@@ -25,7 +31,7 @@ namespace XaliseConnect.Domain.Entities.Workflow
 
         /// <summary>
         /// Numéro de version du flux.<br/>
-        /// Doit être supérieur à 0 et est incrémenté à chaque modification du flux.
+        /// Doit être supérieur à 0.
         /// </summary>
         public int Version { get; private set; }
 
@@ -43,6 +49,11 @@ namespace XaliseConnect.Domain.Entities.Workflow
         /// Indique <see langword="true"/> si le flux est archivé, sinon <see langword="false"/>.
         /// </summary>
         public bool IsArchived => this.ArchivedAt.HasValue;
+
+        /// <summary>
+        /// Collection des événements associés au flux.
+        /// </summary>
+        public IReadOnlyCollection<WorkflowEvent> Events => this._events.AsReadOnly();
 
         /// <summary>
         /// Constructeur réservé à l'infrastructure (EF Core).
@@ -96,6 +107,85 @@ namespace XaliseConnect.Domain.Entities.Workflow
             }
 
             this.ArchivedAt = null;
+        }
+
+        /// <summary>
+        /// Ajoute un événement au flux avec les paramètres spécifiés.<br/>
+        /// </summary>
+        /// <param name="canReplay">Indique si l'événement peut être rejoué.</param>
+        /// <param name="executionOrder">Ordre d'exécution de l'événement.</param>
+        /// <param name="minOccurrences">Nombre minimum d'occurrences de l'événement.</param>
+        /// <param name="maxOccurrences">Nombre maximum d'occurrences de l'événement.</param>
+        /// <param name="eventType">Type de l'événement.</param>
+        /// <returns>L'événement ajouté au flux.</returns>
+        /// <exception cref="ArgumentNullException">Levée lorsque <paramref name="eventType"/> est <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Levée lorsque l'ordre d'exécution ou le nombre d'occurrences est invalide.</exception>
+        /// <exception cref="InvalidOperationException">Levée lorsqu'un événement du workflow possède déjà le même ordre d'exécution.</exception>
+        public WorkflowEvent AddEvent(bool canReplay, int executionOrder, int minOccurrences, int? maxOccurrences, EventType eventType)
+        {
+            if (this._events.Any(x => x.ExecutionOrder == executionOrder))
+            {
+                throw new InvalidOperationException("Un flux de travail ne peut pas contenir deux événements avec le même ordre d'exécution.");
+            }
+
+            WorkflowEvent workflowEvent = new WorkflowEvent(canReplay, executionOrder, minOccurrences, maxOccurrences, this, eventType);
+
+            this._events.Add(workflowEvent);
+
+            return workflowEvent;
+        }
+
+        /// <summary>
+        /// Vérifie que l'ajout d'une dépendance ne crée pas de cycle dans le workflow.
+        /// </summary>
+        /// <remarks>
+        /// Après l'ajout de A → B, la tentative d'ajout de B → A est refusée.<br/>
+        /// Le test parcourt aussi les cycles indirects : A → B → C, puis C → A.
+        /// </remarks>
+        /// <param name="dependentWorkflowEvent">Événement qui dépend de l'événement requis.</param>
+        /// <param name="requiredWorkflowEvent">Événement requis par l'événement dépendant.</param>
+        /// <exception cref="InvalidOperationException">Levée lorsque l'ajout crée un cycle de dépendances.</exception>
+        internal void EnsureDependencyDoesNotCreateCycle(WorkflowEvent dependentWorkflowEvent, WorkflowEvent requiredWorkflowEvent)
+        {
+            HashSet<WorkflowEvent> visitedWorkflowEvents = [];
+
+            if (this.HasDependencyPath(requiredWorkflowEvent, dependentWorkflowEvent, visitedWorkflowEvents))
+            {
+                throw new InvalidOperationException("L'ajout de cette dépendance crée un cycle dans le flux de travail.");
+            }
+        }
+
+        /// <summary>
+        /// Recherche un chemin de dépendances entre deux événements.
+        /// </summary>
+        /// <param name="currentWorkflowEvent">Événement actuellement analysé.</param>
+        /// <param name="targetWorkflowEvent">Événement recherché.</param>
+        /// <param name="visitedWorkflowEvents">Événements déjà analysés.</param>
+        /// <returns><see langword="true"/> lorsqu'un chemin mène à l'événement recherché, sinon <see langword="false"/>.</returns>
+        private bool HasDependencyPath(WorkflowEvent currentWorkflowEvent, WorkflowEvent targetWorkflowEvent, ISet<WorkflowEvent> visitedWorkflowEvents)
+        {
+            if (ReferenceEquals(currentWorkflowEvent, targetWorkflowEvent))
+            {
+                return true;
+            }
+
+            if (!visitedWorkflowEvents.Add(currentWorkflowEvent))
+            {
+                return false;
+            }
+
+            foreach (WorkflowDependencyGroup workflowDependencyGroup in currentWorkflowEvent.DependencyGroups)
+            {
+                foreach (WorkflowDependencyItem workflowDependencyItem in workflowDependencyGroup.Items)
+                {
+                    if (this.HasDependencyPath(workflowDependencyItem.WorkflowEvent, targetWorkflowEvent, visitedWorkflowEvents))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

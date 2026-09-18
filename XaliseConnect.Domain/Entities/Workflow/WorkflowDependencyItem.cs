@@ -37,14 +37,24 @@
         private WorkflowDependencyItem() { }
 
         /// <summary>
-        /// Constructeur public pour créer une instance de <see cref="WorkflowDependencyItem"/> avec un groupe de dépendances et un événement du flux.
+        /// Constructeur pour créer une instance de <see cref="WorkflowDependencyItem"/> avec un groupe de dépendances et un événement du flux.
         /// </summary>
         /// <param name="workflowDependencyGroup">Groupe de dépendances auquel appartient l'élément de dépendance.</param>
         /// <param name="workflowEvent">Événement du flux auquel appartient l'élément de dépendance.</param>
-        public WorkflowDependencyItem(WorkflowDependencyGroup workflowDependencyGroup, WorkflowEvent workflowEvent)
+        internal WorkflowDependencyItem(WorkflowDependencyGroup workflowDependencyGroup, WorkflowEvent workflowEvent)
         {
             ArgumentNullException.ThrowIfNull(workflowDependencyGroup, nameof(workflowDependencyGroup));
             ArgumentNullException.ThrowIfNull(workflowEvent, nameof(workflowEvent));
+
+            if (!ReferenceEquals(workflowEvent.Workflow, workflowDependencyGroup.WorkflowEvent.Workflow))
+            {
+                throw new InvalidOperationException("Un événement de dépendance doit appartenir au même flux de travail.");
+            }
+
+            if (ReferenceEquals(workflowEvent, workflowDependencyGroup.WorkflowEvent))
+            {
+                throw new InvalidOperationException("Un événement ne peut pas dépendre de lui-même.");
+            }
 
             this.WorkflowDependencyGroup = workflowDependencyGroup;
             this.WorkflowDependencyGroupId = workflowDependencyGroup.Id;

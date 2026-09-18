@@ -62,17 +62,18 @@ namespace XaliseConnect.Domain.Entities.Configuration
         }
 
         /// <summary>
-        /// Archive la source en définissant la date et l'heure d'archivage à la date et l'heure actuelles (UTC).
+        /// Archive la source en définissant la date et l'heure d'archivage.
         /// </summary>
+        /// <param name="archivedAt">Date et heure d'archivage de la source.</param>
         /// <exception cref="InvalidOperationException">Si <see cref="ArchivedAt"/> est déjà défini.</exception>
-        public void Archive()
+        public void Archive(DateTime archivedAt)
         {
             if (this.ArchivedAt.HasValue)
             {
                 throw new InvalidOperationException("La source est déjà archivée.");
             }
 
-            this.ArchivedAt = DateTime.UtcNow;
+            this.ArchivedAt = archivedAt;
         }
 
         /// <summary>
