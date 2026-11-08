@@ -10,6 +10,73 @@
         <title>Xalise Connect > @ViewData["Title"]</title>
     </head>
     <body data-bs-theme="xalise">
+        <div id="xal-id-portals">
+            <!-- Overlay appliqué sur la page lors de certaines actions -->
+            <div id="xal-id-loader-overlay"
+                 class="xal-loader-overlay"
+                 aria-hidden="true"
+                 hidden>
+                <div class="xal-loader-overlay__content">
+                    <div class="xal-loader-overlay__spinner" aria-hidden="true"></div>
+                    <span class="xal-loader-overlay__message"></span>
+                </div>
+            </div>
+
+            <!-- Template du loader -->
+            <template id="xal-id-loader-placeholder-template">
+                <div class="xal-loader-placeholder">
+                    <div class="xal-loader-placeholder__block"></div>
+                    <div class="xal-loader-placeholder__block"></div>
+                    <div class="xal-loader-placeholder__block"></div>
+                    <div class="xal-loader-placeholder__block"></div>
+                    <div class="xal-loader-placeholder__block"></div>
+                    <div class="xal-loader-placeholder__block"></div>
+                    <div class="xal-loader-placeholder__block"></div>
+                </div>
+            </template>
+
+            <!-- Conteneur des toast -->
+            <div class="toast-container position-fixed bottom-0 end-0 p-3">
+                <!-- Template des toast de feedback -->
+                <template id="xal-id-toast-template-feedback">
+                    <div class="toast xal-toast" role="status" aria-live="polite" aria-atomic="true">
+                        <div class="toast-header">
+                            <i class="bi me-2 xal-toast__icon" aria-hidden="true" hidden></i>
+                            <strong class="me-auto xal-toast__label"></strong>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Fermer"></button>
+                        </div>
+                        <div class="toast-body xal-toast__message"></div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Template de modale -->
+            <template id="xal-id-modal-template">
+                <div class="modal fade xal-modal" tabindex="-1" aria-modal="true" role="dialog">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header xal-modal__header">
+                                <h6 class="modal-title xal-modal__title"></h6>
+                                <button type="button" class="btn-close xal-modal__close-button" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                            </div>
+                            <div class="modal-body xal-modal__body"></div>
+                            <div class="modal-footer xal-modal__footer"></div>
+                        </div>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Template de bouton pour les modales -->
+            <template id="xal-id-modal-button-template">
+                <button type="button" class="btn xal-modal__button"></button>
+            </template>
+
+            <!-- Template d'icône pour les boutons des modales -->
+            <template id="xal-id-modal-icon-template">
+                <i class="bi me-2 xal-modal__icon" aria-hidden="true"></i>
+            </template>
+        </div>
+
         <!-- Barre de navigation -->
         <nav role="navigation"
              id="xal-id-main-navbar"
@@ -257,6 +324,7 @@
         </div>
 
         <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+        <script type="module" src="~/js/xalise-pages.js" asp-append-version="true"></script>
         <script src="~/js/site.js" asp-append-version="true"></script>
         @await RenderSectionAsync("Scripts", required: false)
     </body>
