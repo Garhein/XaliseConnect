@@ -47,6 +47,11 @@ public sealed class IntegrationRequestListItem
     public string? CorrelationRuleLabel { get; init; }
 
     /// <summary>
+    /// Valeur de corrélation associée à la demande.
+    /// </summary>
+    public string? CorrelationRuleValue { get; init; }
+
+    /// <summary>
     /// Numéro d'instance du workflow.
     /// </summary>
     public string? InstanceNumber { get; init; }

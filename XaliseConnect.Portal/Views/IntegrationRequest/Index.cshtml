@@ -3,76 +3,400 @@
 @model IntegrationRequestListViewModel
 
 @{
-    ViewData["Title"] = "Demandes d'intégration";
+    ViewData["Title"]    = "Demandes d'intégration";
+    ViewData["Subtitle"] = "Consultez les messages reçus et suivez leur avancement";
 }
 
-<section aria-labelledby="integration-requests-title">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-        <div>
-            <h1 id="integration-requests-title" class="h2 mb-1">Demandes d'intégration</h1>
-            <p class="text-secondary mb-0">Suivi des messages reçus et de leur traitement.</p>
+<section aria-labelledby="xal-id-integration-results-title">
+    <h2 id="xal-id-integration-results-title" class="visually-hidden">
+        Résultats des demandes d'intégration
+    </h2>
+
+    <!-- Actions et pagination -->
+    <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+        <!-- Actions -->
+        <div class="d-flex flex-wrap align-items-center justify-content-start gap-2 xal-table__actions"
+             data-xal-table-container-actions="#xal-id-table-integration-request">
+            <button type="button" class="btn btn-sm btn-xalise" disabled>
+                <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+                <span class="">Rejouer</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-danger" disabled>
+                <i class="bi bi-trash" aria-hidden="true"></i>
+                <span class="">Supprimer</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary xal-table__actions--not-dynamic-state">
+                <i class="bi bi-download" aria-hidden="true"></i>
+                <span class="">Exporter</span>
+            </button>
         </div>
-        <span class="badge text-bg-primary fs-6">@Model.Requests.Count demande(s)</span>
+
+        <!-- Pagination standard
+        <div class="d-flex flex-wrap align-items-center justify-content-end gap-2">
+            <p class="mb-0 text-body-secondary small">
+                43 demandes
+                <span data-xal-table-container-selection-count="#xal-id-table-integration-request"
+                        class="xal-table__selection-count fst-italic"
+                        aria-live="polite"
+                        role="status">
+                </span>
+            </p>
+                                
+            <div class="d-flex align-items-center gap-2">
+                <label for="xal-id-page-size" class="visually-hidden">
+                    Nombre de demandes par page
+                </label>
+                <select id="xal-id-page-size"
+                        name="pageSize"
+                        class="form-select form-select-sm w-auto"
+                        data-xal-table-page-size="#xal-id-table-integration-request">
+                    <option value="10" selected>10 demandes par page</option>
+                    <option value="25">25 demandes par page</option>
+                    <option value="50">50 demandes par page</option>
+                </select>
+            </div>
+
+            <nav aria-label="Pagination des demandes d'intégration">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item">
+                        <a href="#" class="page-link">
+                            <i class="bi bi-chevron-double-left" aria-hidden="true"></i>    
+                            <span class="visually-hidden">Première page</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a href="#" class="page-link">
+                            <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                            <span class="visually-hidden">Page précédente</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a href="#" class="page-link">1</a>
+                    </li>
+                    <li class="page-item">
+                        <a href="#" class="page-link">2</a>
+                    </li>
+                    <li class="page-item">
+                        <a href="#" class="page-link">3</a>
+                    </li>
+                    <li class="page-item">
+                        <a href="#" class="page-link">4</a>
+                    </li>
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">5</span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                            <span class="visually-hidden">Page suivante</span>
+                        </span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link">
+                            <i class="bi bi-chevron-double-right" aria-hidden="true"></i>
+                            <span class="visually-hidden">Dernière page</span>
+                        </span>
+                    </li>
+                </ul>
+            </nav>
+
+            <form class="d-flex align-items-center gap-2"
+                    aria-label="Accéder directement à une page">
+                <label for="xal-id-pagination-jump" class="visually-hidden">
+                    Choisir une page
+                </label>
+                <select id="xal-id-pagination-jump" class="form-select form-select-sm w-auto">
+                    <option value="1">Page 1</option>
+                    <option value="2">Page 2</option>
+                    <option value="3">Page 3</option>
+                    <option value="4">Page 4</option>
+                    <option value="5" selected>Page 5</option>
+                </select>
+            </form>
+        </div>
+        -->
+
+        <!-- Pagination avec liste déroulante -->
+        <div class="d-flex flex-wrap align-items-center justify-content-end gap-2">
+            <p class="mb-0 text-body-secondary small">
+                @Model.Requests.Count demande(s)
+                <span data-xal-table-container-selection-count="#xal-id-table-integration-request"
+                      class="xal-table__selection-count fst-italic"
+                      aria-live="polite"
+                      role="status">
+                </span>
+            </p>
+
+            <div class="d-flex align-items-center gap-2">
+                <label for="xal-id-page-size" class="visually-hidden">
+                    Nombre de demandes par page
+                </label>
+                <select id="xal-id-page-size"
+                        name="pageSize"
+                        class="form-select form-select-sm w-auto"
+                        data-xal-table-page-size="#xal-id-table-integration-request">
+                    <option value="10" selected>10 demandes par page</option>
+                    <option value="25">25 demandes par page</option>
+                    <option value="50">50 demandes par page</option>
+                </select>
+            </div>
+
+            <nav aria-label="Pagination des demandes d'intégration">
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item">
+                        <button type="button"
+                                class="page-link"
+                                aria-label="Première page">
+                            <i class="bi bi-chevron-double-left" aria-hidden="true"></i>
+                        </button>
+                    </li>
+                    <li class="page-item">
+                        <button type="button"
+                                class="page-link"
+                                aria-label="Page précédente">
+                            <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                        </button>
+                    </li>
+                    <li class="page-item">
+                        <label for="xal-id-pagination-jump" class="visually-hidden">
+                            Choisir une page
+                        </label>
+                        <select id="xal-id-pagination-jump" class="form-select form-select-sm xal-pagination__select">
+                            <option value="1">Page 1</option>
+                            <option value="2">Page 2</option>
+                            <option value="3">Page 3</option>
+                            <option value="4">Page 4</option>
+                            <option value="5" selected>Page 5</option>
+                        </select>
+                    </li>
+                    <li class="page-item disabled">
+                        <button type="button"
+                                class="page-link"
+                                aria-label="Page suivante"
+                                disabled>
+                            <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                        </button>
+                    </li>
+                    <li class="page-item disabled">
+                        <button type="button"
+                                class="page-link"
+                                aria-label="Dernière page"
+                                disabled>
+                            <i class="bi bi-chevron-double-right" aria-hidden="true"></i>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        </div>
     </div>
 
+    <!-- Encart indiquant qu'aucune demande n'existe ou ne correspond aux critères de recherche -->
     @if (Model.Requests.Count == 0)
     {
-        <div class="alert alert-info" role="status">
-            Aucune demande d'intégration n'est disponible.
+        <div class="row justify-content-center mb-3 d-none">
+            <div class="col-12 col-xl-6">
+                <div class="text-center xal-empty-state" role="status">
+                    <i class="bi bi-search fs-3 text-secondary d-block" aria-hidden="true"></i>
+
+                    <h2 class="h5 mb-2">Aucune demande d'intégration trouvée</h2>
+                    <p class="small text-body-secondary mb-1">
+                        Modifiez vos critères de recherche ou réinitialisez les pour relancer la recherche.
+                    </p>
+                </div>
+            </div>
         </div>
     }
-    else
+    else 
     {
-        <div class="table-responsive border rounded-3 bg-white shadow-sm">
-            <table class="table table-hover align-middle mb-0">
-                <caption class="visually-hidden">Liste des demandes d'intégration et de leurs statuts.</caption>
-                <thead class="table-light">
+        <!-- Résultats de la recherche -->
+        <div class="table-responsive">
+            <table id="xal-id-table-integration-request"
+                   class="table table-hover xal-table"
+                   data-xal-table-selectable
+                   data-xal-refresh-url="/demande-integration">
+                <caption class="visually-hidden">
+                    Liste des demandes d'intégration
+                </caption>
+                <thead>
                     <tr>
-                        <th scope="col">Date de réception</th>
-                        <th scope="col">N°demande</th>
-                        <th scope="col">Source</th>
+                        <th scope="col" class="text-center">
+                            <input type="checkbox"
+                                   class="form-check-input"
+                                   id="form-check-input" aria-label="Sélectionner toutes les demandes affichées"
+                                   data-xal-table-check-all>
+                        </th>
+                        <th scope="col" aria-sort="descending">
+                            <button type="button"
+                                    class="xal-table__sort"
+                                    data-xal-table-sort-column="receivedAt"
+                                    data-xal-table-sort-label="Date de réception">
+                                Date de réception
+                                <i class="bi bi-arrow-down xal-table__sort-icon" aria-hidden="true"></i>
+                            </button>
+                        </th>
+                        <th scope="col">
+                            <button type="button"
+                                    class="xal-table__sort"
+                                    data-xal-table-sort-column="requestNumber"
+                                    data-xal-table-sort-label="Numéro de demande">
+                                N°demande
+                                <i class="bi bi-arrow-down-up xal-table__sort-icon" aria-hidden="true"></i>
+                            </button>
+                        </th>
+                        <th scope="col">
+                            <button type="button"
+                                    class="xal-table__sort"
+                                    data-xal-table-sort-column="source"
+                                    data-xal-table-sort-label="Source">
+                                Source
+                                <i class="bi bi-arrow-down-up xal-table__sort-icon" aria-hidden="true"></i>
+                            </button>
+                        </th>
                         <th scope="col">Valeur de corrélation</th>
                         <th scope="col">Workflow d'intégration</th>
                         <th scope="col">Réception</th>
                         <th scope="col">Transport</th>
                         <th scope="col">Intégration</th>
+                        <th scope="col">
+                            <span class="visually-hidden">Actions</span>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (IntegrationRequestListItem req in Model.Requests)
                     {
-                        <tr>
-                            <td class="text-nowrap">@req.ReceivedAtUtc.ToString("dd/MM/yyyy HH:mm")</td>
-                            <td class="text-nowrap">@req.RequestNumber</td>
-                            <td>
-                                <div class="fw-semibold">@req.SourceLabel</div>
-                                <small class="text-secondary">Type : @req.SourceTypeLabel</small>
+                        <tr data-xal-record-id="@req.Id">
+                            <td class="text-center">
+                                <input type="checkbox"
+                                       class="form-check-input"
+                                       aria-label="Sélectionner la demande"
+                                       data-xal-table-check-row />
                             </td>
-                            <td>
-                                @if (!string.IsNullOrWhiteSpace(req.SourceReference))
-                                {
-                                    <div class="fw-semibold">@req.SourceReference</div>
-                                    <small class="text-secondary">@req.WorkflowLabel : @req.CorrelationRuleLabel</small>
-                                }
-                                else
-                                {
-                                    <span>—</span>
-                                }
+                            <td class="text-nowrap">
+                                <!-- TODO: format de l'attribut 'datetime' -->
+                                <time datetime="2026-10-17T11:25:00">@req.ReceivedAtUtc.ToString("dd/MM/yyyy HH:mm")</time>
                             </td>
+                            <td>@req.RequestNumber</td>
                             <td>
-                                @if (!string.IsNullOrWhiteSpace(req.InstanceNumber))
-                                {
-                                    @req.InstanceNumber
-                                }
-                                else
-                                {
-                                    <span>—</span>
-                                }
+                                <div class="d-flex justify-content-start align-items-center gap-2">
+                                    <span>@req.SourceLabel</span>
+                                    <span class="xal-u-contextual-info-trigger"
+                                          role="button"
+                                          tabindex="0"
+                                          aria-label="Détails de la source"
+                                          data-bs-toggle="popover"
+                                          data-bs-custom-class="xal-u-popover xal-u-popover--fit-content"
+                                          data-bs-trigger="click"
+                                          data-bs-title="Détails de la source"
+                                          data-xal-popover-label="@req.SourceTypeLabel"
+                                          data-xal-popover-value="@req.SourceReference"
+                                          data-xal-popover-value-css-classes="font-monospace">
+                                        <i class="bi bi-question" aria-hidden="true"></i>
+                                    </span>
+                                </div>
+                                <small class="text-body-secondary">Type : @req.SourceTypeLabel</small>
                             </td>
-                            <td>@(req.StatusReceptionLabel ?? "—")</td>
-                            <td>@(req.StatusTransportLabel ?? "—")</td>
-                            <td>@(req.StatusIntegrationLabel ?? "—")</td>
-                        </tr>
+
+                            @if (string.IsNullOrWhiteSpace(req.CorrelationRuleValue))
+                            {
+                                <td aria-label="Valeur de corrélation non connue">—</td>
+                            }
+                            else
+                            {
+                                <td>
+                                    <code>@req.CorrelationRuleValue</code>
+                                    <small class="text-body-secondary d-block">@req.WorkflowLabel : @req.CorrelationRuleLabel</small>
+                                </td>
+                            }
+
+                            @if (string.IsNullOrWhiteSpace(req.InstanceNumber))
+                            {
+                                <td aria-label="Aucun workflow d'intégration">—</td>
+                            }
+                            else
+                            {
+                                <td>
+                                    <div class="d-flex justify-content-start align-items-center gap-2">
+                                        <a href="#" class="text-body text-decoration-none">@req.InstanceNumber</a>
+                                        <!-- TODO: gérer l'affichage dynamique des détails de l'instance du workflow -->
+                                        <span class="xal-u-contextual-info-trigger"
+                                              role="button"
+                                              tabindex="0"
+                                              aria-label="Détails du workflow d'intégration @req.InstanceNumber"
+                                              data-bs-toggle="popover"
+                                              data-bs-custom-class="xal-u-popover xal-u-popover--fit-content"
+                                              data-bs-trigger="click"
+                                              data-bs-title="Détails du workflow d'intégration"
+                                              data-xal-popover-content="#xal-id-integration-workflow-details-1085">
+                                            <i class="bi bi-question" aria-hidden="true"></i>
+                                        </span>
+                                    </div>
+                                </td>
+                            }
+
+                            <!-- TODO: gestion de la couleur du badge + accès à l'erreur -->
+                            @if (string.IsNullOrWhiteSpace(req.StatusReceptionLabel))
+                            {
+                                <td aria-label="Aucun statut de réception">—</td>
+                            }
+                            else
+                            {
+                                <td>
+                                    <span class="badge text-bg-success">@req.StatusReceptionLabel</span>
+                                </td>
+                            }
+
+                            @if (string.IsNullOrWhiteSpace(req.StatusTransportLabel))
+                            {
+                                <td aria-label="Aucun statut de transport">—</td>
+                            }
+                            else
+                            {
+                                <td>
+                                    <span class="badge text-bg-success">@req.StatusTransportLabel</span>
+                                </td>
+                            }
+
+                            @if (string.IsNullOrWhiteSpace(req.StatusIntegrationLabel))
+                            {
+                                <td aria-label="Aucun statut d'intégration">—</td>
+                            }
+                            else
+                            {
+                                <td>
+                                    <span class="badge text-bg-success">@req.StatusIntegrationLabel</span>
+                                </td>
+                            }
+
+                            <td class="text-nowrap align-middle">
+                                <div class="d-flex justify-content-end gap-1 xal-table__row-actions">
+                                    <button type="button"
+                                            class="btn btn-sm btn-link xal-table__row-actions--edit"
+                                            aria-label="Modifier la demande @req.RequestNumber"
+                                            title="Modifier la demande">
+                                        <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-sm btn-link xal-table__row-actions--content"
+                                            aria-label="Afficher le message brut de la demande @req.RequestNumber"
+                                            title="Afficher le message brut">
+                                        <i class="bi bi-file-earmark-text" aria-hidden="true"></i>
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-sm btn-link xal-table__row-actions--history"
+                                            aria-label="Afficher l'historique de la demande @req.RequestNumber"
+                                            title="Afficher l'historique">
+                                        <i class="bi bi-clock-history" aria-hidden="true"></i>
+                                    </button>
+                                    <button type="button"
+                                            class="btn btn-sm btn-link xal-table__row-actions--delete"
+                                            aria-label="Supprimer la demande @req.RequestNumber"
+                                            title="Supprimer la demande">
+                                        <i class="bi bi-trash" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>            
                     }
                 </tbody>
             </table>

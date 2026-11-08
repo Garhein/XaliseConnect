@@ -17,7 +17,8 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
                 RequestNumber           = "INT-2026110701",
                 SourceLabel             = "Dépôt interne",
                 SourceTypeLabel         = "Fichier",
-                StatusReceptionLabel    = "Reçue"
+                StatusReceptionLabel    = "Reçue",
+                SourceReference         = "\\\\serveur\\hl7\\in\\patient.hl7"
             },
             new()
             {
@@ -26,9 +27,10 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
                 RequestNumber           = "INT-2026110602",
                 SourceLabel             = "Transmission interne",
                 SourceTypeLabel         = "API",
-                SourceReference         = "EVT-008422",
+                SourceReference         = "POST /api/patients/",
                 WorkflowLabel           = "Admission",
                 CorrelationRuleLabel    = "PV1-19",
+                CorrelationRuleValue    = "EVT-008422",
                 InstanceNumber          = "WF-1085",
                 StatusReceptionLabel    = "Validée",
                 StatusTransportLabel    = "Erreur"
@@ -40,9 +42,10 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
                 RequestNumber           = "INT-2026110503",
                 SourceLabel             = "Transmission externe",
                 SourceTypeLabel         = "MLLP",
-                SourceReference         = "EVT-008392",
+                SourceReference         = "192.168.1.10:2575",
                 WorkflowLabel           = "Identité patient",
                 CorrelationRuleLabel    = "PID-3",
+                CorrelationRuleValue    = "EVT-008392",
                 InstanceNumber          = "WF-1051",
                 StatusReceptionLabel    = "Validée",
                 StatusTransportLabel    = "Envoyée",
