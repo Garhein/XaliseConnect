@@ -1,0 +1,81 @@
+﻿@using XaliseConnect.Portal.Models.IntegrationRequest
+@using XaliseConnect.Application.IntegrationRequest.Models
+@model IntegrationRequestListViewModel
+
+@{
+    ViewData["Title"] = "Demandes d'intégration";
+}
+
+<section aria-labelledby="integration-requests-title">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h1 id="integration-requests-title" class="h2 mb-1">Demandes d'intégration</h1>
+            <p class="text-secondary mb-0">Suivi des messages reçus et de leur traitement.</p>
+        </div>
+        <span class="badge text-bg-primary fs-6">@Model.Requests.Count demande(s)</span>
+    </div>
+
+    @if (Model.Requests.Count == 0)
+    {
+        <div class="alert alert-info" role="status">
+            Aucune demande d'intégration n'est disponible.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive border rounded-3 bg-white shadow-sm">
+            <table class="table table-hover align-middle mb-0">
+                <caption class="visually-hidden">Liste des demandes d'intégration et de leurs statuts.</caption>
+                <thead class="table-light">
+                    <tr>
+                        <th scope="col">Date de réception</th>
+                        <th scope="col">N°demande</th>
+                        <th scope="col">Source</th>
+                        <th scope="col">Valeur de corrélation</th>
+                        <th scope="col">Workflow d'intégration</th>
+                        <th scope="col">Réception</th>
+                        <th scope="col">Transport</th>
+                        <th scope="col">Intégration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (IntegrationRequestListItem req in Model.Requests)
+                    {
+                        <tr>
+                            <td class="text-nowrap">@req.ReceivedAtUtc.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td class="text-nowrap">@req.RequestNumber</td>
+                            <td>
+                                <div class="fw-semibold">@req.SourceLabel</div>
+                                <small class="text-secondary">Type : @req.SourceTypeLabel</small>
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(req.SourceReference))
+                                {
+                                    <div class="fw-semibold">@req.SourceReference</div>
+                                    <small class="text-secondary">@req.WorkflowLabel : @req.CorrelationRuleLabel</small>
+                                }
+                                else
+                                {
+                                    <span>—</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(req.InstanceNumber))
+                                {
+                                    @req.InstanceNumber
+                                }
+                                else
+                                {
+                                    <span>—</span>
+                                }
+                            </td>
+                            <td>@(req.StatusReceptionLabel ?? "—")</td>
+                            <td>@(req.StatusTransportLabel ?? "—")</td>
+                            <td>@(req.StatusIntegrationLabel ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

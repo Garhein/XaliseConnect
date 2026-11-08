@@ -13,5 +13,5 @@ public class ErrorViewModel
     /// <summary>
     /// Indique si l'identifiant de requête doit être affiché.
     /// </summary>
-    public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+    public bool ShowRequestId => !string.IsNullOrEmpty(this.RequestId);
 }

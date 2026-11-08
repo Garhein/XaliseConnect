@@ -12,6 +12,13 @@ dotnet_style_require_accessibility_modifiers = always:suggestion
 dotnet_style_readonly_field = true:suggestion
 csharp_style_namespace_declarations = file_scoped:suggestion
 
+# Qualify references to instance members with this.
+dotnet_style_qualification_for_field = true:warning
+dotnet_style_qualification_for_property = true:warning
+dotnet_style_qualification_for_method = true:warning
+dotnet_style_qualification_for_event = true:warning
+dotnet_diagnostic.IDE0009.severity = warning
+
 # Public types and members use PascalCase.
 dotnet_naming_rule.public_symbols_pascal_case.severity = warning
 dotnet_naming_rule.public_symbols_pascal_case.symbols = public_symbols

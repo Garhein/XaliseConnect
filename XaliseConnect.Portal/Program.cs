@@ -1,4 +1,6 @@
-﻿namespace XaliseConnect.Portal;
+﻿using XaliseConnect.Application.IntegrationRequest;
+
+namespace XaliseConnect.Portal;
 
 /// <summary>
 /// Représente le point d'entrée de l'application web Xalise Connect.
@@ -15,7 +17,7 @@ public class Program
 
         // Ajoute les services MVC au conteneur d'injection de dépendances.
         builder.Services.AddControllersWithViews();
-
+        builder.Services.AddSingleton<IIntegrationRequestQueryService, MockIntegrationRequestQueryService>();
         WebApplication app = builder.Build();
 
         // Configure le pipeline HTTP de l'application.

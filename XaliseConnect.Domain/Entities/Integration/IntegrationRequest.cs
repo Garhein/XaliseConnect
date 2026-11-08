@@ -13,6 +13,12 @@ public class IntegrationRequest
     public int Id { get; set; }
 
     /// <summary>
+    /// Numéro de la demande.
+    /// </summary>
+    [MaxLength(16)]
+    public string RequestNumber { get; set; } = string.Empty;
+
+    /// <summary>
     /// Date et heure UTC de réception de la demande.
     /// </summary>
     public DateTime ReceivedAt { get; set; }
