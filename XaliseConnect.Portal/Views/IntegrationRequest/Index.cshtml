@@ -273,8 +273,8 @@
                                        data-xal-table-check-row />
                             </td>
                             <td class="text-nowrap">
-                                <!-- TODO: format de l'attribut 'datetime' -->
-                                <time datetime="2026-10-17T11:25:00">@req.ReceivedAtUtc.ToString("dd/MM/yyyy HH:mm")</time>
+                                <!-- TODO: transformer la date/heure UTC en valeur locale -->
+                                <time datetime="@req.ReceivedAtUtc.ToString("yyyy-MM-ddTHH:mm:ssZ")">@req.ReceivedAtUtc.ToString("dd/MM/yyyy HH:mm")</time>
                             </td>
                             <td>@req.RequestNumber</td>
                             <td>
@@ -334,39 +334,9 @@
                                 </td>
                             }
 
-                            <!-- TODO: gestion de la couleur du badge + accès à l'erreur -->
-                            @if (string.IsNullOrWhiteSpace(req.StatusReceptionLabel))
-                            {
-                                <td aria-label="Aucun statut de réception">—</td>
-                            }
-                            else
-                            {
-                                <td>
-                                    <span class="badge text-bg-success">@req.StatusReceptionLabel</span>
-                                </td>
-                            }
-
-                            @if (string.IsNullOrWhiteSpace(req.StatusTransportLabel))
-                            {
-                                <td aria-label="Aucun statut de transport">—</td>
-                            }
-                            else
-                            {
-                                <td>
-                                    <span class="badge text-bg-success">@req.StatusTransportLabel</span>
-                                </td>
-                            }
-
-                            @if (string.IsNullOrWhiteSpace(req.StatusIntegrationLabel))
-                            {
-                                <td aria-label="Aucun statut d'intégration">—</td>
-                            }
-                            else
-                            {
-                                <td>
-                                    <span class="badge text-bg-success">@req.StatusIntegrationLabel</span>
-                                </td>
-                            }
+                            <partial name="_StatusCell" model="StatusPresentationHelper.CreateReceptionCell(req)" />
+                            <partial name="_StatusCell" model="StatusPresentationHelper.CreateTransportCell(req)" />
+                            <partial name="_StatusCell" model="StatusPresentationHelper.CreateIntegrationCell(req)" />
 
                             <td class="text-nowrap align-middle">
                                 <div class="d-flex justify-content-end gap-1 xal-table__row-actions">

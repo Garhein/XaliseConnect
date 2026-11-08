@@ -1,4 +1,5 @@
 ﻿using XaliseConnect.Application.IntegrationRequest.Models;
+using XaliseConnect.Domain.Enums;
 
 namespace XaliseConnect.Application.IntegrationRequest;
 
@@ -10,7 +11,7 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
     private static readonly IReadOnlyList<IntegrationRequestListItem> _requestIntegration = Array.AsReadOnly(
         new IntegrationRequestListItem[]
         {
-            new()
+            new IntegrationRequestListItem()
             {
                 Id                      = 2026110701,
                 ReceivedAtUtc           = new DateTime(2026, 11, 7, 12, 42, 0, DateTimeKind.Utc),
@@ -18,9 +19,10 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
                 SourceLabel             = "Dépôt interne",
                 SourceTypeLabel         = "Fichier",
                 StatusReceptionLabel    = "Reçue",
+                StatusReception         = EnumStatusReception.RECUE,
                 SourceReference         = "\\\\serveur\\hl7\\in\\patient.hl7"
             },
-            new()
+            new IntegrationRequestListItem()
             {
                 Id                      = 2026110602,
                 ReceivedAtUtc           = new DateTime(2026, 11, 6, 9, 21, 0, DateTimeKind.Utc),
@@ -33,9 +35,11 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
                 CorrelationRuleValue    = "EVT-008422",
                 InstanceNumber          = "WF-1085",
                 StatusReceptionLabel    = "Validée",
-                StatusTransportLabel    = "Erreur"
+                StatusReception         = EnumStatusReception.VALIDEE,
+                StatusTransportLabel    = "Échec",
+                StatusTransport         = EnumStatusTransport.ECHEC_TRANSPORT
             },
-            new()
+            new IntegrationRequestListItem()
             {
                 Id                      = 2026110503,
                 ReceivedAtUtc           = new DateTime(2026, 11, 5, 19, 49, 0, DateTimeKind.Utc),
@@ -48,8 +52,11 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
                 CorrelationRuleValue    = "EVT-008392",
                 InstanceNumber          = "WF-1051",
                 StatusReceptionLabel    = "Validée",
+                StatusReception         = EnumStatusReception.VALIDEE,
                 StatusTransportLabel    = "Envoyée",
-                StatusIntegrationLabel  = "En attente"
+                StatusTransport         = EnumStatusTransport.ENVOYEE,
+                StatusIntegrationLabel  = "En attente",
+                StatusIntegration       = EnumStatusIntegration.EN_ATTENTE
             }
         });
 

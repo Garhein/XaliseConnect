@@ -1,4 +1,6 @@
-﻿namespace XaliseConnect.Application.IntegrationRequest.Models;
+﻿using XaliseConnect.Domain.Enums;
+
+namespace XaliseConnect.Application.IntegrationRequest.Models;
 
 /// <summary>
 /// Représente les données d'une demande d'intégration destinées à l'affichage
@@ -62,12 +64,27 @@ public sealed class IntegrationRequestListItem
     public string? StatusReceptionLabel { get; init; }
 
     /// <summary>
+    /// Statut de réception, ou <see langword="null"/> si aucun statut n'est associé.
+    /// </summary>
+    public EnumStatusReception? StatusReception { get; init; }
+
+    /// <summary>
     /// Libellé du statut de transport, ou <see langword="null"/> si aucun statut n'est associé.
     /// </summary>
     public string? StatusTransportLabel { get; init; }
 
     /// <summary>
+    /// Statut de transport, ou <see langword="null"/> si aucun statut n'est associé.
+    /// </summary>
+    public EnumStatusTransport? StatusTransport { get; init; }
+
+    /// <summary>
     /// Libellé du statut d'intégration, ou <see langword="null"/> si aucun statut n'est associé.
     /// </summary>
     public string? StatusIntegrationLabel { get; init; }
+
+    /// <summary>
+    /// Statut d'intégration, ou <see langword="null"/> si aucun statut n'est associé.
+    /// </summary>
+    public EnumStatusIntegration? StatusIntegration { get; init; }
 }

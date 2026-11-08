@@ -1,0 +1,25 @@
+﻿@using XaliseConnect.Portal.Models.IntegrationRequest
+@model StatusCellViewModel
+
+@if (string.IsNullOrWhiteSpace(Model.Label))
+{
+    <td aria-label="@Model.EmptyAriaLabel">—</td>
+}
+else if (Model.IsError)
+{
+    <td>
+        <button type="button"
+                class="border-0 badge @Model.CssClass xal-table__failure-trigger"
+                aria-label="Afficher les détails de l'erreur de la demande @Model.RequestNumber"
+                data-xal-failure-stage="@Model.FailureStage">
+            Erreur
+            <i class="bi bi-info-circle ms-1" aria-hidden="true"></i>
+        </button>
+    </td>
+}
+else
+{
+    <td>
+        <span class="badge @Model.CssClass">@Model.Label</span>
+    </td>
+}
