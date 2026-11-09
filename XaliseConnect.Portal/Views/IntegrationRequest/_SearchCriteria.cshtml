@@ -1,9 +1,11 @@
-﻿<form class="card mb-3 xal-form-search" role="search" aria-label="Recherche des demandes d'intégration">
+﻿@using XaliseConnect.Portal.Models.IntegrationRequest
+@model IntegrationRequestSearchCriteriaViewModel
+
+<form class="card mb-3 xal-form-search" role="search" aria-label="Recherche des demandes d'intégration">
     <div class="card-body">
         <div class="row gy-2 gx-3 align-items-end">
-            <!-- Numéro de demande -->
             <div class="col-12 col-md-6 col-xl-3">
-                <label for="search-request-id" class="form-label">N°de demande</label>
+                <label for="search-request-id" class="form-label">N° de demande</label>
                 <input name="requestId"
                        id="search-request-id"
                        type="search"
@@ -12,7 +14,6 @@
                        placeholder="Ex : INT-20261021">
             </div>
 
-            <!-- Critères principaux -->
             <div class="col-12 col-md-6 col-xl-6">
                 <div class="row gy-2 gx-3">
                     <div class="col-12 col-sm-6">
@@ -25,6 +26,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="col-12 col-sm-6 col-xl-3">
                 <label for="search-source" class="form-label">Source</label>
                 <select name="sourceId" id="search-source" class="form-select form-select-sm">
@@ -39,34 +41,30 @@
                 <input name="correlationValue" id="search-correlation-value" type="search" class="form-control form-control-sm" placeholder="Identifiant...">
             </div>
 
-            <!-- Statuts et actions -->
             <div class="col-12 col-xl-6">
                 <div class="row gy-2 gx-3">
                     <div class="col-12 col-sm-4">
                         <label for="search-status-reception" class="form-label">Statut de réception</label>
-                        <select name="receptionStatusId" id="search-status-reception" class="form-select form-select-sm">
-                            <option value="">Tous les statuts</option>
-                            <option value="1">En attente</option>
-                            <option value="2">En erreur</option>
-                            <option value="3">Terminé</option>
+                        <select name="receptionStatusId"
+                                id="search-status-reception"
+                                class="form-select form-select-sm"
+                                asp-items="Model.StatusReceptionOptions">
                         </select>
                     </div>
                     <div class="col-12 col-sm-4">
                         <label for="search-status-transport" class="form-label">Statut de transport</label>
-                        <select name="transportStatusId" id="search-status-transport" class="form-select form-select-sm">
-                            <option value="">Tous les statuts</option>
-                            <option value="1">En attente</option>
-                            <option value="2">En erreur</option>
-                            <option value="3">Terminé</option>
+                        <select name="transportStatusId"
+                                id="search-status-transport"
+                                class="form-select form-select-sm"
+                                asp-items="Model.StatusTransportOptions">
                         </select>
                     </div>
                     <div class="col-12 col-sm-4">
                         <label for="search-status-integration" class="form-label">Statut d'intégration</label>
-                        <select name="integrationStatusId" id="search-status-integration" class="form-select form-select-sm">
-                            <option value="">Tous les statuts</option>
-                            <option value="1">En attente</option>
-                            <option value="2">En erreur</option>
-                            <option value="3">Terminé</option>
+                        <select name="integrationStatusId"
+                                id="search-status-integration"
+                                class="form-select form-select-sm"
+                                asp-items="Model.StatusIntegrationOptions">
                         </select>
                     </div>
                 </div>

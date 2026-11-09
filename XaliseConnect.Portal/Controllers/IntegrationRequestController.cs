@@ -2,6 +2,8 @@
 using XaliseConnect.Application.IntegrationRequest;
 using XaliseConnect.Application.IntegrationRequest.Models;
 using XaliseConnect.Portal.Models.IntegrationRequest;
+using XaliseConnect.Portal.Helpers;
+using XaliseConnect.Domain.Enums;
 
 namespace XaliseConnect.Portal.Controllers;
 
@@ -37,7 +39,13 @@ public sealed class IntegrationRequestController : Controller
     {
         IReadOnlyList<IntegrationRequestListItem> integrationRequests = await this._integrationRequestQueryService.GetIntegrationRequestListAsync(cancellationToken);
 
-        IntegrationRequestListViewModel viewModel = new(integrationRequests);
+        IntegrationRequestSearchCriteriaViewModel searchCriteria = new IntegrationRequestSearchCriteriaViewModel(
+            SelectListHelper.CreateSelectList<EnumStatusReception>(includeUnspecifiedOption: true, unspecifiedOptionText: "Tous les statuts"),
+            SelectListHelper.CreateSelectList<EnumStatusTransport>(includeUnspecifiedOption: true, unspecifiedOptionText: "Tous les statuts"),
+            SelectListHelper.CreateSelectList<EnumStatusIntegration>(includeUnspecifiedOption: true, unspecifiedOptionText: "Tous les statuts")
+        );
+
+        IntegrationRequestListViewModel viewModel = new IntegrationRequestListViewModel(integrationRequests, searchCriteria);
 
         return this.View("Index", viewModel);
     }
