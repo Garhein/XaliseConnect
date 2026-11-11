@@ -1,6 +1,8 @@
 ﻿using System.Reflection;
 using XaliseConnect.Domain.Attributes;
 
+using System.ComponentModel;
+
 namespace XaliseConnect.Domain.Helpers;
 
 /// <summary>
@@ -8,6 +10,26 @@ namespace XaliseConnect.Domain.Helpers;
 /// </summary>
 public static class EnumHelper
 {
+    /// <summary>
+    /// Récupère le libellé défini par l'attribut <see cref="DescriptionAttribute"/> du membre d'énumération.
+    /// </summary>
+    /// <typeparam name="TEnum">Type de l'énumération.</typeparam>
+    /// <param name="enumValue">Membre dont le libellé doit être récupéré.</param>
+    /// <returns>Texte défini dans l'attribut <see cref="DescriptionAttribute"/>.</returns>
+    /// <exception cref="InvalidOperationException">Si le membre ne possède pas d'attribut <see cref="DescriptionAttribute"/>.</exception>
+    public static string GetDescription<TEnum>(this TEnum enumValue) where TEnum : struct, Enum
+    {
+        FieldInfo? enumMember               = typeof(TEnum).GetField(enumValue.ToString());
+        DescriptionAttribute? description   = enumMember?.GetCustomAttribute<DescriptionAttribute>();
+
+        if (description is null)
+        {
+            throw new InvalidOperationException($"Le membre '{enumValue}' de l'énumération '{typeof(TEnum).Name}' doit avoir un attribut 'Description'.");
+        }
+
+        return description.Description;
+    }
+
     /// <summary>
     /// Indique si le membre d'énumération porte l'attribut <see cref="ErrorStatusAttribute"/>.
     /// </summary>
