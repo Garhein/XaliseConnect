@@ -29,6 +29,11 @@ public sealed class IntegrationRequestListItem
     public required string SourceLabel { get; init; }
 
     /// <summary>
+    /// Identifiant de la source ayant émis la demande.
+    /// </summary>
+    public required int SourceId { get; init; }
+
+    /// <summary>
     /// Libellé du type de la source.
     /// </summary>
     public required string SourceTypeLabel { get; init; }

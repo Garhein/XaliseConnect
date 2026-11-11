@@ -1,12 +1,22 @@
 ﻿@using XaliseConnect.Portal.Models.IntegrationRequest
 @model IntegrationRequestSearchCriteriaViewModel
 
-<form class="card mb-3 xal-form-search" role="search" aria-label="Recherche des demandes d'intégration">
+<form asp-route="@IntegrationRequestRoute.CSTS_SEARCH"
+      method="get"
+      class="card mb-3 xal-form-search"
+      data-xal-search-results="#xal-id-integration-request-results"
+      data-xal-search-loader="overlay"
+      data-xal-search-loader-message="Recherche en cours..."
+      data-xal-search-placeholder="#xal-id-integration-request-results"
+      data-xal-search-placeholder-mode="prepend"
+      data-xal-search-placeholder-min-duration="5000"
+      role="search"
+      aria-label="Recherche des demandes d'intégration">
     <div class="card-body">
         <div class="row gy-2 gx-3 align-items-end">
             <div class="col-12 col-md-6 col-xl-3">
                 <label for="search-request-id" class="form-label">N° de demande</label>
-                <input name="requestId"
+                <input name="requestNumber"
                        id="search-request-id"
                        type="search"
                        class="form-control form-control-sm"
@@ -18,11 +28,11 @@
                 <div class="row gy-2 gx-3">
                     <div class="col-12 col-sm-6">
                         <label for="search-date-start" class="form-label">Reçue à partir du</label>
-                        <input name="startDate" id="search-date-start" type="datetime-local" class="form-control form-control-sm">
+                        <input name="receivedFromUtc" id="search-date-start" type="datetime-local" class="form-control form-control-sm" data-xal-search-convert="datetime-local-to-utc">
                     </div>
                     <div class="col-12 col-sm-6">
                         <label for="search-date-end" class="form-label">Reçue jusqu'au</label>
-                        <input name="endDate" id="search-date-end" type="datetime-local" class="form-control form-control-sm">
+                        <input name="receivedToUtc" id="search-date-end" type="datetime-local" class="form-control form-control-sm" data-xal-search-convert="datetime-local-to-utc">
                     </div>
                 </div>
             </div>
@@ -45,7 +55,7 @@
                 <div class="row gy-2 gx-3">
                     <div class="col-12 col-sm-4">
                         <label for="search-status-reception" class="form-label">Statut de réception</label>
-                        <select name="receptionStatusId"
+                        <select name="statusReception"
                                 id="search-status-reception"
                                 class="form-select form-select-sm"
                                 asp-items="Model.StatusReceptionOptions">
@@ -53,7 +63,7 @@
                     </div>
                     <div class="col-12 col-sm-4">
                         <label for="search-status-transport" class="form-label">Statut de transport</label>
-                        <select name="transportStatusId"
+                        <select name="statusTransport"
                                 id="search-status-transport"
                                 class="form-select form-select-sm"
                                 asp-items="Model.StatusTransportOptions">
@@ -61,7 +71,7 @@
                     </div>
                     <div class="col-12 col-sm-4">
                         <label for="search-status-integration" class="form-label">Statut d'intégration</label>
-                        <select name="integrationStatusId"
+                        <select name="statusIntegration"
                                 id="search-status-integration"
                                 class="form-select form-select-sm"
                                 asp-items="Model.StatusIntegrationOptions">

@@ -1,17 +1,18 @@
-import { XalConstants } from '../core/XalConstants.js';
-import { XalDialog } from '../components/XalDialog.js';
-import { XalToast } from '../components/XalToast.js';
-import { XalLoaderOverlay } from '../loaders/XalLoaderOverlay.js';
+﻿import { XalConstants } from '../core/XalConstants.js';
 import { getClosestAttributeContext, getTemplateById } from '../shared/dom.js';
 import { initPopovers } from '../shared/initPopovers.js';
 import { initTables } from '../shared/initTables.js';
+import { XalDialog } from '../components/XalDialog.js';
+import { XalToast } from '../components/XalToast.js';
+import { XalLoaderOverlay } from '../loaders/XalLoaderOverlay.js';
 
 const SELECTORS = Object.freeze({
-    delete:     '.xal-table__row-actions--delete',
-    history:    '.xal-table__row-actions--history',
-    content:    '.xal-table__row-actions--content',
-    failure:    '.xal-table__failure-trigger',
-    record:     '[data-xal-record-id]',
+    delete:         '.xal-table__row-actions--delete',
+    history:        '.xal-table__row-actions--history',
+    content:        '.xal-table__row-actions--content',
+    failure:        '.xal-table__failure-trigger',
+    record:         '[data-xal-record-id]',
+    searchResults:  '#xal-id-integration-request-results',
 });
 
 const TEMPLATE_IDS = Object.freeze({
@@ -21,7 +22,7 @@ const TEMPLATE_IDS = Object.freeze({
 });
 
 // =-=-=-=-=-=-=-=-=-=-=-=-
-// Actions de ligne
+// TODO: Actions de ligne
 // =-=-=-=-=-=-=-=-=-=-=-=-
 
 async function confirmDelete(trigger) {
@@ -156,6 +157,19 @@ async function replayIntegrationRequest(recordId) {
 }
 
 // =-=-=-=-=-=-=-=-=-=-=-=-
+// Fonctions utilitaires
+// =-=-=-=-=-=-=-=-=-=-=-=-
+
+function exposeDialogDebugModule() {
+    if (!new URLSearchParams(window.location.search).has('debug')) return;
+
+    window.xaliseDebug = Object.freeze({
+        ...window.xaliseDebug,
+        XalDialog,
+    });
+}
+
+// =-=-=-=-=-=-=-=-=-=-=-=-
 // Initialisation déléguée
 // =-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -190,20 +204,44 @@ export function initIntegrationRequestActions(root = document) {
     });
 }
 
-function exposeDialogDebugModule() {
-    if (!new URLSearchParams(window.location.search).has('debug')) return;
+/**
+ * Réinitialise les composants des résultats après une recherche Ajax.
+ *
+ * @param   {CustomEvent} event Événement contenant le conteneur actualisé.
+ * @returns {void}
+ */
+function handleSearchResultsUpdated(event) {
+    const resultsContainer = event.detail?.resultsContainer;
 
-    window.xaliseDebug = Object.freeze({
-        ...window.xaliseDebug,
-        XalDialog,
-    });
+    if (!(resultsContainer instanceof HTMLElement) || !resultsContainer.matches(SELECTORS.searchResults)) {
+        return;
+    }
+
+    const resultsContent = resultsContainer.firstElementChild;
+
+    if (resultsContent) {
+        initTables(resultsContent);
+        initPopovers(resultsContent);
+    }
 }
 
+/**
+ * Initialise la page des demandes d'intégration.
+ *
+ * @returns {void}
+ */
 function initIntegrationRequestPage() {
-    initTables();
-    initPopovers();
+    const initialResults = document.querySelector(`${SELECTORS.searchResults} .xal-search-results-content`);
+
+    if (initialResults) {
+        initTables(initialResults);
+        initPopovers(initialResults);
+    }
+
     initIntegrationRequestActions();
     exposeDialogDebugModule();
+
+    document.addEventListener('xal-search:results-updated', handleSearchResultsUpdated);
 
     document.addEventListener('xal-dialog:error', (event) => {
         const { error, button } = event.detail;

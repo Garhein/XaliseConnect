@@ -1,9 +1,9 @@
-/**
- * Constantes DOM partagées par les composants JavaScript de l'application Xalise.
+﻿/**
+ * Constantes DOM partagées par les composants JavaScript de l'application Xalise Connect.
  */
 export const XalConstants = Object.freeze({
     /**
-     * Noms des attributs ARIA utilisés par les composants.
+     * Noms des attributs ARIA.
      */
     ariaNames: Object.freeze({
         hidden:     'aria-hidden',
@@ -130,10 +130,8 @@ export const XalConstants = Object.freeze({
      * Classes CSS ajoutées ou supprimées dynamiquement via `classList`.
      */
     cssClasses: Object.freeze({
-        // Classe appliquée à un placeholder actif dans une zone cible
-        loaderPlaceholderActive: 'xal-loader-placeholder--active',
-
-        displayNone: 'd-none',
+        loaderPlaceholderActive:    'xal-loader-placeholder--active',
+        displayNone:                'd-none',
 
         bootstrapIcons: Object.freeze({ 
             arrowUp:                    'bi-arrow-up',

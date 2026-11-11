@@ -8,7 +8,7 @@ namespace XaliseConnect.Portal.Helpers;
 /// Définition des méthodes de création des modèles de données utilisés pour l'affichage
 /// d'un statut d'une demande d'intégration.
 /// </summary>
-public static class StatusPresentationHelper
+public static class RequestIntegrationStatusPresentationHelper
 {
     /// <summary>
     /// Création du modèle de données pour le statut de réception.

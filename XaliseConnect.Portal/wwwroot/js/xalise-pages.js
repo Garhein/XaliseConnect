@@ -4,6 +4,7 @@ import { XalToast } from './components/XalToast.js';
 import { XalLoaderNav } from './loaders/XalLoaderNav.js';
 import { XalLoaderOverlay } from './loaders/XalLoaderOverlay.js';
 import { XalLoaderPlaceholder } from './loaders/XalLoaderPlaceholder.js';
+import { initSearchForms } from './core/XalSearch.js';
 
 /**
  * Initialise les éléments partagés par les pages de l'application.
@@ -17,6 +18,7 @@ function initAppShell() {
     XalLoaderNav.init();
     XalToast.init();
 
+    initSearchForms();
     exposeDebugModules();
 }
 
