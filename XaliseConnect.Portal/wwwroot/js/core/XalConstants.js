@@ -23,7 +23,6 @@ export const XalConstants = Object.freeze({
             popoverValue:                   'data-xal-popover-value',
             popoverValueCssClasses:         'data-xal-popover-value-css-classes',
             recordId:                       'data-xal-record-id',
-            refreshUrl:                     'data-xal-refresh-url',
             tableContainerActions :         'data-xal-table-container-actions',
             tableContainerSelectionCount:   'data-xal-table-container-selection-count',
             tablePageSize:                  'data-xal-table-page-size',

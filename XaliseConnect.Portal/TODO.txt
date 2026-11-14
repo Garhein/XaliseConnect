@@ -1,4 +1,10 @@
-﻿- L'attribut "data-xal-refresh-url" ne semble plus être utilisé. Vérifie si c'est bien le cas et si oui, supprime le du fichier "XalConstants.js"
-- Il y a de nombreuses occurrences de valeur en "dur" (ascending, descending, nom des colonnes de sorting, icônes) : je veux des constantes ou un autre système (énumération ?)
-- Si l'ensemble des éléments est affiché sur une seule page, ne pas afficher la navigation entre les pages mais uniquement la liste permettant de sélectionner le nombre d'éléments par page
-- Obtenir les critères via une instance de IntegrationRequestSearchCriteriaViewModel et mapper vers IntegrationRequestSearchCriteria
+﻿
+1.  L'attribut "data-xal-refresh-url" ne semble plus être utilisé. Vérifie si c'est bien le cas et si oui, supprime le du fichier "XalConstants.js"
+
+2.  De nombreuses valeurs sont en "dur" (ascending, descending, nom des colonnes de sorting, icônes de tri) : utilise des constantes ou un autre système (énumération ?)
+
+3.  Si tous les éléments sont affichés sur une seule page, n'affiche pas la navigation entre les pages mais uniquement la liste permettant de sélectionner le nombre d'éléments par page
+
+4.  Obtenir les critères de recherche via un objet plutôt qu'en les passant en paramètres de la méthode
+
+
