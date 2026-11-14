@@ -1,0 +1,4 @@
+﻿- L'attribut "data-xal-refresh-url" ne semble plus être utilisé. Vérifie si c'est bien le cas et si oui, supprime le du fichier "XalConstants.js"
+- Il y a de nombreuses occurrences de valeur en "dur" (ascending, descending, nom des colonnes de sorting, icônes) : je veux des constantes ou un autre système (énumération ?)
+- Si l'ensemble des éléments est affiché sur une seule page, ne pas afficher la navigation entre les pages mais uniquement la liste permettant de sélectionner le nombre d'éléments par page
+- Obtenir les critères via une instance de IntegrationRequestSearchCriteriaViewModel et mapper vers IntegrationRequestSearchCriteria

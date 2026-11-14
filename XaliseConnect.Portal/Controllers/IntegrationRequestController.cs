@@ -111,9 +111,6 @@ public sealed class IntegrationRequestController : Controller
         [FromQuery(Name = "sort")] string? sort = "receivedAt",
         [FromQuery(Name = "direction")] string? direction = "descending")
     {
-        // TODO: obtenir les critères via une instance de IntegrationRequestSearchCriteriaViewModel et mapper vers IntegrationRequestSearchCriteria
-        // TODO: revoir tout le JavaScripts (XalHttp, événement sur la page, ...)
-
         bool isReceptionStatusValid = SelectListHelper.TryParseSelectListValue(
             statusReception,
             out EnumStatusReception? receptionStatus,
