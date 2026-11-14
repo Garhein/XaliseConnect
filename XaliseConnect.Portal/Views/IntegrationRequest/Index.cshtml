@@ -1,5 +1,4 @@
 ﻿@using XaliseConnect.Portal.Models.IntegrationRequest
-@using XaliseConnect.Application.IntegrationRequest.Models
 @model IntegrationRequestListViewModel
 
 @{
@@ -10,7 +9,7 @@
 <partial name="_SearchCriteria" model="Model.SearchCriteria" />
 
 <div id="xal-id-integration-request-results" aria-live="polite">
-    <partial name="_IntegrationRequestResults" model="Model.Requests" />
+    <partial name="_IntegrationRequestResults" model="Model.Results" />
 </div>
 
 @section Scripts {

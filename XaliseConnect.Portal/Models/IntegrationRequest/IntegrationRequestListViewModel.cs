@@ -1,6 +1,4 @@
-﻿using XaliseConnect.Application.IntegrationRequest.Models;
-
-namespace XaliseConnect.Portal.Models.IntegrationRequest;
+﻿namespace XaliseConnect.Portal.Models.IntegrationRequest;
 
 /// <summary>
 /// Modèle de données pour l'affichage de la liste des demandes d'intégration.
@@ -8,9 +6,9 @@ namespace XaliseConnect.Portal.Models.IntegrationRequest;
 public sealed class IntegrationRequestListViewModel
 {
     /// <summary>
-    /// Liste des demandes d'intégration à afficher.
+    /// Résultats paginés des demandes d'intégration.
     /// </summary>
-    public IReadOnlyList<IntegrationRequestListItem> Requests { get; }
+    public IntegrationRequestResultsViewModel Results { get; }
 
     /// <summary>
     /// Critères de recherche applicables à la liste des demandes d'intégration.
@@ -20,15 +18,15 @@ public sealed class IntegrationRequestListViewModel
     /// <summary>
     /// Initialise le modèle d'affichage de la liste des demandes d'intégration.
     /// </summary>
-    /// <param name="requests">Liste des demandes d'intégration à afficher.</param>
+    /// <param name="results">Résultats paginés des demandes d'intégration.</param>
     /// <param name="searchCriteria">Critères de recherche applicables à la liste des demandes d'intégration.</param>
-    /// <exception cref="ArgumentNullException">Si <paramref name="requests"/> ou <paramref name="searchCriteria"/> est <see langword="null"/>.</exception>
-    public IntegrationRequestListViewModel(IReadOnlyList<IntegrationRequestListItem> requests, IntegrationRequestSearchCriteriaViewModel searchCriteria)
+    /// <exception cref="ArgumentNullException">Si <paramref name="results"/> ou <paramref name="searchCriteria"/> est <see langword="null"/>.</exception>
+    public IntegrationRequestListViewModel(IntegrationRequestResultsViewModel results, IntegrationRequestSearchCriteriaViewModel searchCriteria)
     {
-        ArgumentNullException.ThrowIfNull(requests);
+        ArgumentNullException.ThrowIfNull(results);
         ArgumentNullException.ThrowIfNull(searchCriteria);
 
-        this.Requests       = requests;
+        this.Results        = results;
         this.SearchCriteria = searchCriteria;
     }
 }

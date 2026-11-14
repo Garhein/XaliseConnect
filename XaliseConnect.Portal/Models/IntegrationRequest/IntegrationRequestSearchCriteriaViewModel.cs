@@ -25,9 +25,9 @@ public sealed class IntegrationRequestSearchCriteriaViewModel
     /// <summary>
     /// Initialise les options des critères de recherche.
     /// </summary>
-    /// <param name="receptionStatusOptions">Statut de réception.</param>
-    /// <param name="transportStatusOptions">Statut de transport.</param>
-    /// <param name="integrationStatusOptions">Statut d'intégration.</param>
+    /// <param name="statusReceptionOptions">Options du statut de réception.</param>
+    /// <param name="statusTransportOptions">Options du statut de transport.</param>
+    /// <param name="statusIntegrationOptions">Options du statut d'intégration.</param>
     /// <exception cref="ArgumentNullException">Si une liste d'options est <see langword="null"/>.</exception>
     public IntegrationRequestSearchCriteriaViewModel(SelectList statusReceptionOptions, SelectList statusTransportOptions, SelectList statusIntegrationOptions)
     {

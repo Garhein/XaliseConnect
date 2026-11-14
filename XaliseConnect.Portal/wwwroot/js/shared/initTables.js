@@ -1,58 +1,44 @@
-import { XalConstants } from '../core/XalConstants.js';
+﻿import { XalConstants } from '../core/XalConstants.js';
 import { initTableSelection } from '../core/XalTableSelection.js';
 import { initTableSort } from '../core/XalTableSort.js';
 import { initTablePagination } from '../core/XalTablePagination.js';
 
-const tableStates = new WeakMap();
-
 /**
- * Récupère ou initialise l'état de tri et de pagination d'une table.
+ * Met à jour l'état de recherche caché et demande une nouvelle recherche.
  *
- * @param {HTMLTableElement} table Table concernée.
- * @returns {{sort: string|null, direction: string|null, pageSize: number, page: number}} État courant de la table.
+ * @param   {HTMLTableElement}              table           Table dont les données changent.
+ * @param   {Object<string, string|number>} stateValues     Valeurs d'état à modifier.
+ * @returns {void}
  */
-function getTableState(table) {
-    if (!tableStates.has(table)) {
-        tableStates.set(table, {
-            sort: null,
-            direction: null,
-            pageSize: 10,
-            page: 1,
-        });
+function submitTableStateChange(table, stateValues) {
+    const searchFormSelector = table.getAttribute(XalConstants.dataNames.xalise.tableSearchForm);
+    const searchForm         = searchFormSelector ? document.querySelector(searchFormSelector) : null;
+
+    if (!(searchForm instanceof HTMLFormElement)) {
+        console.error('[XalTable] Le formulaire de recherche de la table est introuvable.');
+        return;
     }
 
-    return tableStates.get(table);
+    for (const [fieldName, fieldValue] of Object.entries(stateValues)) {
+        const field = searchForm.elements.namedItem(fieldName);
+
+        if (!(field instanceof HTMLInputElement)) {
+            console.error(`[XalTable] Le champ d'état '${fieldName}' est introuvable dans le formulaire de recherche.`);
+            return;
+        }
+
+        field.value = String(fieldValue);
+    }
+
+    searchForm.dispatchEvent(new Event('xal-search:state-change'));
 }
 
 /**
- * Construit l'URL de rafraîchissement à partir de l'état courant de la table.
+ * Initialise les interactions génériques d'une table dans la racine fournie.
+ * Les changements de tri et de pagination actualisent le formulaire de recherche associé.
  *
- * @param {HTMLTableElement} table Table concernée.
- * @param {{sort: string|null, direction: string|null, pageSize: number, page: number}} state État à transmettre.
- * @returns {URL} URL enrichie des paramètres de tri et de pagination.
- */
-function buildTableRefreshUrl(table, state) {
-    const url = new URL(table.getAttribute(XalConstants.dataNames.xalise.refreshUrl), window.location.origin);
-
-    if (state.sort) {
-        url.searchParams.set('sort', state.sort);
-        url.searchParams.set('direction', state.direction);
-    }
-
-    url.searchParams.set('pageSize', state.pageSize);
-    url.searchParams.set('page', state.page);
-
-    return url;
-}
-
-/**
- * Initialise les interactions génériques des tables dans la racine fournie : sélection,
- * tri, taille de page et préparation des URL de rafraîchissement.
- *
- * À ce stade, les URL sont journalisées dans la console ; le chargement des données
- * n'est pas encore implémenté.
- *
- * @param {ParentNode} [root=document] Racine contenant les tables à initialiser.
+ * @param   {ParentNode} [root=document] Racine contenant la table.
+ * @returns {void}
  */
 export function initTables(root = document) {
     initTableSelection(root);
@@ -61,32 +47,42 @@ export function initTables(root = document) {
 
     root.addEventListener('xal-table:sort', (event) => {
         const table = event.target;
-        if (!(table instanceof HTMLTableElement)) return;
 
-        const state = getTableState(table);
+        if (!(table instanceof HTMLTableElement)) {
+            return;
+        }
+
         const { key, direction } = event.detail;
 
-        state.sort      = key;
-        state.direction = direction;
-        state.page      = 1;
-
-        const url = buildTableRefreshUrl(table, state);
-
-        // TODO : transmettre l'URL au chargeur de données de l'application.
-        console.log(url);
+        submitTableStateChange(table, {
+            sort: key,
+            direction,
+            page: 1,
+        });
     });
 
     root.addEventListener('xal-table:page-size-change', (event) => {
         const table = event.target;
-        if (!(table instanceof HTMLTableElement)) return;
 
-        const state     = getTableState(table);
-        state.pageSize  = event.detail.pageSize;
-        state.page      = 1;
+        if (!(table instanceof HTMLTableElement)) {
+            return;
+        }
 
-        const url = buildTableRefreshUrl(table, state);
+        submitTableStateChange(table, {
+            pageSize: event.detail.pageSize,
+            page: 1,
+        });
+    });
 
-        // TODO : transmettre l'URL au chargeur de données de l'application.
-        console.log(url);
+    root.addEventListener('xal-table:page-change', (event) => {
+        const table = event.target;
+
+        if (!(table instanceof HTMLTableElement)) {
+            return;
+        }
+
+        submitTableStateChange(table, {
+            page: event.detail.page,
+        });
     });
 }

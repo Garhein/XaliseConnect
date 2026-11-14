@@ -1,5 +1,7 @@
 ﻿using XaliseConnect.Domain.Enums;
 
+using XaliseConnect.Application.Pagination;
+
 namespace XaliseConnect.Application.IntegrationRequest.Models;
 
 /// <summary>
@@ -7,6 +9,15 @@ namespace XaliseConnect.Application.IntegrationRequest.Models;
 /// </summary>
 public sealed class IntegrationRequestSearchCriteria
 {
+    /// <summary>
+    /// Critères de tri et de pagination.
+    /// </summary>
+    public PaginationCriteria Pagination { get; init; } = new PaginationCriteria()
+    {
+        SortColumn = "receivedAt",
+        SortDirection = "descending"
+    };
+
     /// <summary>
     /// Numéro de demande.
     /// </summary>

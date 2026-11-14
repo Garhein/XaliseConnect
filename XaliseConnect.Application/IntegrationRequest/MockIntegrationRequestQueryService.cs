@@ -1,6 +1,7 @@
 ﻿using XaliseConnect.Application.IntegrationRequest.Models;
 using XaliseConnect.Domain.Enums;
 using XaliseConnect.Domain.Helpers;
+using XaliseConnect.Application.Pagination;
 
 namespace XaliseConnect.Application.IntegrationRequest;
 
@@ -12,9 +13,10 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
     private static readonly IReadOnlyList<IntegrationRequestListItem> _requestIntegration = Array.AsReadOnly(MockIntegrationRequestQueryService._CreateMockIntegrationRequestList());
 
     /// <inheritdoc />
-    public Task<IReadOnlyList<IntegrationRequestListItem>> GetIntegrationRequestListAsync(IntegrationRequestSearchCriteria searchCriteria, CancellationToken cancellationToken)
+    public Task<PagedResult<IntegrationRequestListItem>> GetIntegrationRequestListAsync(IntegrationRequestSearchCriteria searchCriteria, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(searchCriteria);
+        ArgumentNullException.ThrowIfNull(searchCriteria.Pagination);
         cancellationToken.ThrowIfCancellationRequested();
 
         IEnumerable<IntegrationRequestListItem> requests = MockIntegrationRequestQueryService._requestIntegration;
@@ -71,7 +73,39 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
             requests = requests.Where(req => req.StatusIntegration is null);
         }
 
-        IReadOnlyList<IntegrationRequestListItem> result = requests.ToArray();
+        int totalItemCount   = requests.Count();
+        string sortColumn    = searchCriteria.Pagination.SortColumn ?? "receivedAt";
+        string sortDirection = searchCriteria.Pagination.SortDirection ?? "descending";
+
+        IOrderedEnumerable<IntegrationRequestListItem> orderedRequests = (sortColumn, sortDirection) switch
+        {
+            ("requestNumber", "ascending")  => requests.OrderBy(req => req.RequestNumber),
+            ("requestNumber", "descending") => requests.OrderByDescending(req => req.RequestNumber),
+            ("source", "ascending")         => requests.OrderBy(req => req.SourceLabel),
+            ("source", "descending")        => requests.OrderByDescending(req => req.SourceLabel),
+            ("receivedAt", "ascending")     => requests.OrderBy(req => req.ReceivedAtUtc),
+            _                               => requests.OrderByDescending(req => req.ReceivedAtUtc)
+        };
+
+        orderedRequests = orderedRequests.ThenBy(req => req.Id);
+
+        int pageSize        = Math.Max(1, searchCriteria.Pagination.PageSize);
+        int totalPageCount  = Math.Max(1, (int)Math.Ceiling(totalItemCount / (double)pageSize));
+        int pageNumber      = Math.Clamp(searchCriteria.Pagination.PageNumber, 1, totalPageCount);
+
+        IReadOnlyList<IntegrationRequestListItem> pageItems = orderedRequests
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToArray();
+
+        PagedResult<IntegrationRequestListItem> result = new PagedResult<IntegrationRequestListItem>(
+            pageItems,
+            pageNumber,
+            pageSize,
+            totalItemCount,
+            sortColumn,
+            sortDirection
+        );
 
         return Task.FromResult(result);
     }

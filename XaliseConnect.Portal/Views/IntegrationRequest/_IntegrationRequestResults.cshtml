@@ -1,6 +1,6 @@
 ﻿@using XaliseConnect.Application.IntegrationRequest.Models
 @using XaliseConnect.Portal.Helpers
-@model IReadOnlyList<IntegrationRequestListItem>
+@model XaliseConnect.Portal.Models.IntegrationRequest.IntegrationRequestResultsViewModel
 
 <div class="xal-search-results-content">
     <section aria-labelledby="xal-id-integration-results-title">
@@ -27,167 +27,11 @@
                 </button>
             </div>
 
-            <!-- Pagination standard
-            <div class="d-flex flex-wrap align-items-center justify-content-end gap-2">
-                <p class="mb-0 text-body-secondary small">
-                    43 demandes
-                    <span data-xal-table-container-selection-count="#xal-id-table-integration-request"
-                            class="xal-table__selection-count fst-italic"
-                            aria-live="polite"
-                            role="status">
-                    </span>
-                </p>
-                                
-                <div class="d-flex align-items-center gap-2">
-                    <label for="xal-id-page-size" class="visually-hidden">
-                        Nombre de demandes par page
-                    </label>
-                    <select id="xal-id-page-size"
-                            name="pageSize"
-                            class="form-select form-select-sm w-auto"
-                            data-xal-table-page-size="#xal-id-table-integration-request">
-                        <option value="10" selected>10 demandes par page</option>
-                        <option value="25">25 demandes par page</option>
-                        <option value="50">50 demandes par page</option>
-                    </select>
-                </div>
-
-                <nav aria-label="Pagination des demandes d'intégration">
-                    <ul class="pagination pagination-sm mb-0">
-                        <li class="page-item">
-                            <a href="#" class="page-link">
-                                <i class="bi bi-chevron-double-left" aria-hidden="true"></i>    
-                                <span class="visually-hidden">Première page</span>
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a href="#" class="page-link">
-                                <i class="bi bi-chevron-left" aria-hidden="true"></i>
-                                <span class="visually-hidden">Page précédente</span>
-                            </a>
-                        </li>
-                        <li class="page-item">
-                            <a href="#" class="page-link">1</a>
-                        </li>
-                        <li class="page-item">
-                            <a href="#" class="page-link">2</a>
-                        </li>
-                        <li class="page-item">
-                            <a href="#" class="page-link">3</a>
-                        </li>
-                        <li class="page-item">
-                            <a href="#" class="page-link">4</a>
-                        </li>
-                        <li class="page-item active" aria-current="page">
-                            <span class="page-link">5</span>
-                        </li>
-                        <li class="page-item disabled">
-                            <span class="page-link">
-                                <i class="bi bi-chevron-right" aria-hidden="true"></i>
-                                <span class="visually-hidden">Page suivante</span>
-                            </span>
-                        </li>
-                        <li class="page-item disabled">
-                            <span class="page-link">
-                                <i class="bi bi-chevron-double-right" aria-hidden="true"></i>
-                                <span class="visually-hidden">Dernière page</span>
-                            </span>
-                        </li>
-                    </ul>
-                </nav>
-
-                <form class="d-flex align-items-center gap-2"
-                        aria-label="Accéder directement à une page">
-                    <label for="xal-id-pagination-jump" class="visually-hidden">
-                        Choisir une page
-                    </label>
-                    <select id="xal-id-pagination-jump" class="form-select form-select-sm w-auto">
-                        <option value="1">Page 1</option>
-                        <option value="2">Page 2</option>
-                        <option value="3">Page 3</option>
-                        <option value="4">Page 4</option>
-                        <option value="5" selected>Page 5</option>
-                    </select>
-                </form>
-            </div>
-            -->
-
-            <!-- Pagination avec liste déroulante -->
-            <div class="d-flex flex-wrap align-items-center justify-content-end gap-2">
-                <p class="mb-0 text-body-secondary small">
-                    @Model.Count demande(s)
-                    <span data-xal-table-container-selection-count="#xal-id-table-integration-request"
-                          class="xal-table__selection-count fst-italic"
-                          aria-live="polite"
-                          role="status">
-                    </span>
-                </p>
-
-                <div class="d-flex align-items-center gap-2">
-                    <label for="xal-id-page-size" class="visually-hidden">
-                        Nombre de demandes par page
-                    </label>
-                    <select id="xal-id-page-size"
-                            name="pageSize"
-                            class="form-select form-select-sm w-auto"
-                            data-xal-table-page-size="#xal-id-table-integration-request">
-                        <option value="10" selected>10 demandes par page</option>
-                        <option value="25">25 demandes par page</option>
-                        <option value="50">50 demandes par page</option>
-                    </select>
-                </div>
-
-                <nav aria-label="Pagination des demandes d'intégration">
-                    <ul class="pagination pagination-sm mb-0">
-                        <li class="page-item">
-                            <button type="button"
-                                    class="page-link"
-                                    aria-label="Première page">
-                                <i class="bi bi-chevron-double-left" aria-hidden="true"></i>
-                            </button>
-                        </li>
-                        <li class="page-item">
-                            <button type="button"
-                                    class="page-link"
-                                    aria-label="Page précédente">
-                                <i class="bi bi-chevron-left" aria-hidden="true"></i>
-                            </button>
-                        </li>
-                        <li class="page-item">
-                            <label for="xal-id-pagination-jump" class="visually-hidden">
-                                Choisir une page
-                            </label>
-                            <select id="xal-id-pagination-jump" class="form-select form-select-sm xal-pagination__select">
-                                <option value="1">Page 1</option>
-                                <option value="2">Page 2</option>
-                                <option value="3">Page 3</option>
-                                <option value="4">Page 4</option>
-                                <option value="5" selected>Page 5</option>
-                            </select>
-                        </li>
-                        <li class="page-item disabled">
-                            <button type="button"
-                                    class="page-link"
-                                    aria-label="Page suivante"
-                                    disabled>
-                                <i class="bi bi-chevron-right" aria-hidden="true"></i>
-                            </button>
-                        </li>
-                        <li class="page-item disabled">
-                            <button type="button"
-                                    class="page-link"
-                                    aria-label="Dernière page"
-                                    disabled>
-                                <i class="bi bi-chevron-double-right" aria-hidden="true"></i>
-                            </button>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
+            <partial name="_PaginationControls" model="Model.Pagination" />
         </div>
 
         <!-- Encart indiquant qu'aucune demande n'existe ou ne correspond aux critères de recherche -->
-        @if (Model.Count == 0)
+        @if (Model.Page.TotalItemCount == 0)
         {
             <div class="row justify-content-center mb-3">
                 <div class="col-12 col-xl-6">
@@ -202,14 +46,12 @@
                 </div>
             </div>
         }
-        else 
-        {
-            <!-- Résultats de la recherche -->
+        <!-- Résultats de la recherche -->
             <div class="table-responsive">
                 <table id="xal-id-table-integration-request"
-                       class="table table-hover xal-table"
+                       class="table table-hover xal-table @(Model.Page.Items.Count == 0 ? "d-none" : string.Empty)"
                        data-xal-table-selectable
-                       data-xal-refresh-url="@Url.RouteUrl(IntegrationRequestRoute.CSTS_SEARCH)">
+                       data-xal-table-search-form="#xal-id-integration-request-search">
                     <caption class="visually-hidden">
                         Liste des demandes d'intégration
                     </caption>
@@ -222,31 +64,31 @@
                                        aria-label="Sélectionner toutes les demandes affichées"
                                        data-xal-table-check-all>
                             </th>
-                            <th scope="col" aria-sort="descending">
+                            <th scope="col" aria-sort="@(Model.Pagination.SortColumn == "receivedAt" ? Model.Pagination.SortDirection : null)">
                                 <button type="button"
                                         class="xal-table__sort"
                                         data-xal-table-sort-column="receivedAt"
                                         data-xal-table-sort-label="Date de réception">
                                     Date de réception
-                                    <i class="bi bi-arrow-down xal-table__sort-icon" aria-hidden="true"></i>
+                                    <i class="bi @(Model.Pagination.SortColumn == "receivedAt" ? (Model.Pagination.SortDirection == "ascending" ? "bi-arrow-up" : "bi-arrow-down") : "bi-arrow-down-up") xal-table__sort-icon" aria-hidden="true"></i>
                                 </button>
                             </th>
-                            <th scope="col">
+                            <th scope="col" aria-sort="@(Model.Pagination.SortColumn == "requestNumber" ? Model.Pagination.SortDirection : null)">
                                 <button type="button"
                                         class="xal-table__sort"
                                         data-xal-table-sort-column="requestNumber"
                                         data-xal-table-sort-label="Numéro de demande">
                                     N°demande
-                                    <i class="bi bi-arrow-down-up xal-table__sort-icon" aria-hidden="true"></i>
+                                    <i class="bi @(Model.Pagination.SortColumn == "requestNumber" ? (Model.Pagination.SortDirection == "ascending" ? "bi-arrow-up" : "bi-arrow-down") : "bi-arrow-down-up") xal-table__sort-icon" aria-hidden="true"></i>
                                 </button>
                             </th>
-                            <th scope="col">
+                            <th scope="col" aria-sort="@(Model.Pagination.SortColumn == "source" ? Model.Pagination.SortDirection : null)">
                                 <button type="button"
                                         class="xal-table__sort"
                                         data-xal-table-sort-column="source"
                                         data-xal-table-sort-label="Source">
                                     Source
-                                    <i class="bi bi-arrow-down-up xal-table__sort-icon" aria-hidden="true"></i>
+                                    <i class="bi @(Model.Pagination.SortColumn == "source" ? (Model.Pagination.SortDirection == "ascending" ? "bi-arrow-up" : "bi-arrow-down") : "bi-arrow-down-up") xal-table__sort-icon" aria-hidden="true"></i>
                                 </button>
                             </th>
                             <th scope="col">Valeur de corrélation</th>
@@ -260,7 +102,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (IntegrationRequestListItem req in Model)
+                        @foreach (IntegrationRequestListItem req in Model.Page.Items)
                         {
                             <tr data-xal-record-id="@req.Id">
                                 <td class="text-center">
@@ -368,6 +210,5 @@
                     </tbody>
                 </table>
             </div>
-        }
     </section>
 </div>

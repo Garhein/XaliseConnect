@@ -99,18 +99,24 @@ function createLoadingIndicators(form) {
     };
 
     const placeholderTarget = form.dataset.xalSearchPlaceholder;
+    const configuredMinDuration = form.dataset.xalSearchLoaderMinDuration;
 
     if (placeholderTarget) {
-        const minDuration = Number(form.dataset.xalSearchPlaceholderMinDuration ?? 500);
-
         indicators.placeholder = {
             target: placeholderTarget,
             mode: form.dataset.xalSearchPlaceholderMode || 'prepend',
         };
+    }
+
+    if (configuredMinDuration !== undefined) {
+        const minDuration = Number(configuredMinDuration);
 
         indicators.minDuration = Number.isFinite(minDuration)
             ? Math.max(0, minDuration)
-            : 500;
+            : 0;
+    }
+    else if (placeholderTarget) {
+        indicators.minDuration = 500;
     }
 
     return indicators;
@@ -195,6 +201,16 @@ export function initSearchForms(root = document) {
 
         form.addEventListener('submit', (event) => {
             event.preventDefault();
+            const pageField = form.elements.namedItem('page');
+
+            if (pageField instanceof HTMLInputElement) {
+                pageField.value = '1';
+            }
+
+            void submitSearchForm(form, resultsContainer);
+        });
+
+        form.addEventListener('xal-search:state-change', () => {
             void submitSearchForm(form, resultsContainer);
         });
     }
