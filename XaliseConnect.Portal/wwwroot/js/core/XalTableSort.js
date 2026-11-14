@@ -23,7 +23,9 @@ export function initTableSort(root = document) {
 
         // Alterne le sens à chaque clic sur la colonne active
         const currentDirection  = header.getAttribute(XalConstants.ariaNames.sort);
-        const direction         = currentDirection === 'ascending' ? 'descending' : 'ascending';
+        const direction         = currentDirection === XalConstants.sortDirections.ascending
+            ? XalConstants.sortDirections.descending
+            : XalConstants.sortDirections.ascending;
 
         // Réinitialise l'état et l'icône de toutes les colonnes triables
         table.querySelectorAll(XalConstants.cssQueries.table.sort.column)
@@ -50,7 +52,7 @@ export function initTableSort(root = document) {
         const icon = button.querySelector(XalConstants.cssQueries.table.sort.icon);
         if (icon) {
             icon.classList.add(
-                direction === 'ascending'
+                direction === XalConstants.sortDirections.ascending
                     ? XalConstants.cssClasses.bootstrapIcons.arrowUp
                     : XalConstants.cssClasses.bootstrapIcons.arrowDown
             );

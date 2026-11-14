@@ -53,8 +53,8 @@ public sealed class IntegrationRequestController : Controller
             {
                 PageNumber      = 1,
                 PageSize        = IntegrationRequestController.CSTN_DEFAULT_PAGE_SIZE,
-                SortColumn      = "receivedAt",
-                SortDirection   = "descending"
+                SortColumn      = IntegrationRequestSortColumn.CSTS_RECEIVED_AT,
+                SortDirection   = PaginationSortDirection.CSTS_DESCENDING
             }
         };
 
@@ -108,8 +108,8 @@ public sealed class IntegrationRequestController : Controller
         CancellationToken cancellationToken,
         [FromQuery(Name = "page")] int page = 1,
         [FromQuery(Name = "pageSize")] int pageSize = IntegrationRequestController.CSTN_DEFAULT_PAGE_SIZE,
-        [FromQuery(Name = "sort")] string? sort = "receivedAt",
-        [FromQuery(Name = "direction")] string? direction = "descending")
+        [FromQuery(Name = "sort")] string? sort = IntegrationRequestSortColumn.CSTS_RECEIVED_AT,
+        [FromQuery(Name = "direction")] string? direction = PaginationSortDirection.CSTS_DESCENDING)
     {
         bool isReceptionStatusValid = SelectListHelper.TryParseSelectListValue(
             statusReception,
@@ -170,15 +170,15 @@ public sealed class IntegrationRequestController : Controller
     {
         string normalizedSortColumn = sortColumn switch
         {
-            "requestNumber" => "requestNumber",
-            "source"        => "source",
-            _               => "receivedAt"
+            IntegrationRequestSortColumn.CSTS_REQUEST_NUMBER => IntegrationRequestSortColumn.CSTS_REQUEST_NUMBER,
+            IntegrationRequestSortColumn.CSTS_SOURCE => IntegrationRequestSortColumn.CSTS_SOURCE,
+            _ => IntegrationRequestSortColumn.CSTS_RECEIVED_AT
         };
 
         string normalizedSortDirection = sortDirection?.ToLowerInvariant() switch
         {
-            "ascending" => "ascending",
-            _           => "descending"
+            PaginationSortDirection.CSTS_ASCENDING => PaginationSortDirection.CSTS_ASCENDING,
+            _ => PaginationSortDirection.CSTS_DESCENDING
         };
 
         int normalizedPageSize = pageSize is 10 or 25 or 50

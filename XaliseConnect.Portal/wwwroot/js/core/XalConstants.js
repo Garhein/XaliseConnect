@@ -14,6 +14,14 @@ export const XalConstants = Object.freeze({
     }),
 
     /**
+     * Valeurs normalisées des sens de tri.
+     */
+    sortDirections: Object.freeze({
+        ascending:  'ascending',
+        descending: 'descending',
+    }),
+
+    /**
      * Nom des attributs de données.
      */
     dataNames: Object.freeze({

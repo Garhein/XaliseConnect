@@ -1,8 +1,4 @@
 ﻿
-1.  L'attribut "data-xal-refresh-url" ne semble plus être utilisé. Vérifie si c'est bien le cas et si oui, supprime le du fichier "XalConstants.js"
-
-2.  De nombreuses valeurs sont en "dur" (ascending, descending, nom des colonnes de sorting, icônes de tri) : utilise des constantes ou un autre système (énumération ?)
-
 3.  Si tous les éléments sont affichés sur une seule page, n'affiche pas la navigation entre les pages mais uniquement la liste permettant de sélectionner le nombre d'éléments par page
 
 4.  Obtenir les critères de recherche via un objet plutôt qu'en les passant en paramètres de la méthode

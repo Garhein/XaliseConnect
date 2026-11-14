@@ -74,17 +74,17 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
         }
 
         int totalItemCount   = requests.Count();
-        string sortColumn    = searchCriteria.Pagination.SortColumn ?? "receivedAt";
-        string sortDirection = searchCriteria.Pagination.SortDirection ?? "descending";
+        string sortColumn    = searchCriteria.Pagination.SortColumn ?? IntegrationRequestSortColumn.CSTS_RECEIVED_AT;
+        string sortDirection = searchCriteria.Pagination.SortDirection ?? PaginationSortDirection.CSTS_DESCENDING;
 
         IOrderedEnumerable<IntegrationRequestListItem> orderedRequests = (sortColumn, sortDirection) switch
         {
-            ("requestNumber", "ascending")  => requests.OrderBy(req => req.RequestNumber),
-            ("requestNumber", "descending") => requests.OrderByDescending(req => req.RequestNumber),
-            ("source", "ascending")         => requests.OrderBy(req => req.SourceLabel),
-            ("source", "descending")        => requests.OrderByDescending(req => req.SourceLabel),
-            ("receivedAt", "ascending")     => requests.OrderBy(req => req.ReceivedAtUtc),
-            _                               => requests.OrderByDescending(req => req.ReceivedAtUtc)
+            (IntegrationRequestSortColumn.CSTS_REQUEST_NUMBER, PaginationSortDirection.CSTS_ASCENDING)  => requests.OrderBy(req => req.RequestNumber),
+            (IntegrationRequestSortColumn.CSTS_REQUEST_NUMBER, PaginationSortDirection.CSTS_DESCENDING) => requests.OrderByDescending(req => req.RequestNumber),
+            (IntegrationRequestSortColumn.CSTS_SOURCE, PaginationSortDirection.CSTS_ASCENDING)          => requests.OrderBy(req => req.SourceLabel),
+            (IntegrationRequestSortColumn.CSTS_SOURCE, PaginationSortDirection.CSTS_DESCENDING)         => requests.OrderByDescending(req => req.SourceLabel),
+            (IntegrationRequestSortColumn.CSTS_RECEIVED_AT, PaginationSortDirection.CSTS_ASCENDING)     => requests.OrderBy(req => req.ReceivedAtUtc),
+            _                                                                                           => requests.OrderByDescending(req => req.ReceivedAtUtc)
         };
 
         orderedRequests = orderedRequests.ThenBy(req => req.Id);
