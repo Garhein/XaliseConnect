@@ -79,52 +79,27 @@ public sealed class IntegrationRequestController : Controller
     /// <summary>
     /// Recherche les demandes d'intégration correspondant aux critères sélectionnés.
     /// </summary>
-    /// <param name="requestNumber">Numéro de demande.</param>
-    /// <param name="receivedFromUtc">Date et heure UTC minimales de réception.</param>
-    /// <param name="receivedToUtc">Date et heure UTC maximales de réception.</param>
-    /// <param name="sourceId">Identifiant de la source.</param>
-    /// <param name="correlationValue">Valeur de corrélation.</param>
-    /// <param name="statusReception">Sélection de statut de réception : tous, sans statut ou un statut précis.</param>
-    /// <param name="statusTransport">Sélection de statut de transport : tous, sans statut ou un statut précis.</param>
-    /// <param name="statusIntegration">Sélection de statut d'intégration : tous, sans statut ou un statut précis.</param>
-    /// <param name="page">Numéro de page à afficher.</param>
-    /// <param name="pageSize">Nombre maximal de demandes à afficher par page.</param>
-    /// <param name="sort">Colonne de tri des demandes.</param>
-    /// <param name="direction">Sens de tri des demandes.</param>
+    /// <param name="searchRequest">Critères transmis par la requête HTTP.</param>
     /// <param name="cancellationToken">Jeton d'annulation de la demande.</param>
     /// <returns>La vue partielle contenant les résultats correspondant aux critères.</returns>
     /// <exception cref="OperationCanceledException">Si la recherche a été annulée.</exception>
-    
     [HttpGet("recherche", Name = IntegrationRequestRoute.CSTS_SEARCH)]
-    public async Task<IActionResult> SearchAsync(
-        [FromQuery(Name = "requestNumber")] string? requestNumber,
-        [FromQuery(Name = "receivedFromUtc")] DateTimeOffset? receivedFromUtc,
-        [FromQuery(Name = "receivedToUtc")] DateTimeOffset? receivedToUtc,
-        [FromQuery(Name = "sourceId")] int? sourceId,
-        [FromQuery(Name = "correlationValue")] string? correlationValue,
-        [FromQuery(Name = "statusReception")] string? statusReception,
-        [FromQuery(Name = "statusTransport")] string? statusTransport,
-        [FromQuery(Name = "statusIntegration")] string? statusIntegration,
-        CancellationToken cancellationToken,
-        [FromQuery(Name = "page")] int page = 1,
-        [FromQuery(Name = "pageSize")] int pageSize = IntegrationRequestController.CSTN_DEFAULT_PAGE_SIZE,
-        [FromQuery(Name = "sort")] string? sort = IntegrationRequestSortColumn.CSTS_RECEIVED_AT,
-        [FromQuery(Name = "direction")] string? direction = PaginationSortDirection.CSTS_DESCENDING)
+    public async Task<IActionResult> SearchAsync([FromQuery] IntegrationRequestSearchRequest searchRequest, CancellationToken cancellationToken)
     {
         bool isReceptionStatusValid = SelectListHelper.TryParseSelectListValue(
-            statusReception,
+            searchRequest.StatusReception,
             out EnumStatusReception? receptionStatus,
             out bool searchWithoutReceptionStatus
         );
 
         bool isTransportStatusValid = SelectListHelper.TryParseSelectListValue(
-            statusTransport,
+            searchRequest.StatusTransport,
             out EnumStatusTransport? transportStatus,
             out bool searchWithoutTransportStatus
         );
 
         bool isIntegrationStatusValid = SelectListHelper.TryParseSelectListValue(
-            statusIntegration,
+            searchRequest.StatusIntegration,
             out EnumStatusIntegration? integrationStatus,
             out bool searchWithoutIntegrationStatus
         );
@@ -136,18 +111,22 @@ public sealed class IntegrationRequestController : Controller
 
         IntegrationRequestSearchCriteria searchCriteria = new IntegrationRequestSearchCriteria
         {
-            RequestNumber                   = requestNumber,
-            ReceivedFromUtc                 = receivedFromUtc,
-            ReceivedToUtc                   = receivedToUtc,
-            SourceId                        = sourceId,
-            CorrelationValue                = correlationValue,
+            RequestNumber                   = searchRequest.RequestNumber,
+            ReceivedFromUtc                 = searchRequest.ReceivedFromUtc,
+            ReceivedToUtc                   = searchRequest.ReceivedToUtc,
+            SourceId                        = searchRequest.SourceId,
+            CorrelationValue                = searchRequest.CorrelationValue,
             StatusReception                 = receptionStatus,
             SearchWithoutStatusReception    = searchWithoutReceptionStatus,
             StatusTransport                 = transportStatus,
             SearchWithoutStatusTransport    = searchWithoutTransportStatus,
             StatusIntegration               = integrationStatus,
             SearchWithoutStatusIntegration  = searchWithoutIntegrationStatus,
-            Pagination                      = this._CreatePaginationCriteria(page, pageSize, sort, direction)
+            Pagination                      = this._CreatePaginationCriteria(
+                searchRequest.Page,
+                searchRequest.PageSize,
+                searchRequest.Sort,
+                searchRequest.Direction ?? IntegrationRequestSortColumn.CSTS_RECEIVED_AT)
         };
 
         PagedResult<IntegrationRequestListItem> integrationRequests = await this._integrationRequestQueryService.GetIntegrationRequestListAsync(

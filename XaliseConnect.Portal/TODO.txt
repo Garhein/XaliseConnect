@@ -1,6 +1,1 @@
 ﻿
-3.  Si tous les éléments sont affichés sur une seule page, n'affiche pas la navigation entre les pages mais uniquement la liste permettant de sélectionner le nombre d'éléments par page
-
-4.  Obtenir les critères de recherche via un objet plutôt qu'en les passant en paramètres de la méthode
-
-
