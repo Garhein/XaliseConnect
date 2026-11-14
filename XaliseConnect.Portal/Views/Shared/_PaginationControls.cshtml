@@ -30,65 +30,68 @@
         </select>
     </div>
 
-    <nav aria-label="@Model.NavigationLabel"
-         data-xal-table-pagination="@Model.TableSelector"
-         data-xal-table-current-page="@Model.PageNumber"
-         data-xal-table-page-count="@Model.TotalPageCount">
-        <ul class="pagination pagination-sm mb-0">
-            <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : string.Empty)">
-                <button type="button"
-                        class="page-link"
-                        aria-label="Première page"
-                        data-xal-table-page="first"
-                        disabled="@(Model.PageNumber <= 1 ? "disabled" : null)">
-                    <i class="bi bi-chevron-double-left" aria-hidden="true"></i>
-                </button>
-            </li>
-            <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : string.Empty)">
-                <button type="button"
-                        class="page-link"
-                        aria-label="Page précédente"
-                        data-xal-table-page="previous"
-                        disabled="@(Model.PageNumber <= 1 ? "disabled" : null)">
-                    <i class="bi bi-chevron-left" aria-hidden="true"></i>
-                </button>
-            </li>
-            <li class="page-item">
-                <label for="@Model.PageSelectId" class="visually-hidden">Choisir une page</label>
-                <select id="@Model.PageSelectId"
-                        class="form-select form-select-sm xal-pagination__select"
-                        data-xal-table-page-select="@Model.TableSelector">
-                    @for (int pageNumber = 1; pageNumber <= Model.TotalPageCount; pageNumber++)
-                    {
-                        if (pageNumber == Model.PageNumber)
+    @if (Model.TotalPageCount > 1)
+    {
+        <nav aria-label="@Model.NavigationLabel"
+             data-xal-table-pagination="@Model.TableSelector"
+             data-xal-table-current-page="@Model.PageNumber"
+             data-xal-table-page-count="@Model.TotalPageCount">
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : string.Empty)">
+                    <button type="button"
+                            class="page-link"
+                            aria-label="Première page"
+                            data-xal-table-page="first"
+                            disabled="@(Model.PageNumber <= 1 ? "disabled" : null)">
+                        <i class="bi bi-chevron-double-left" aria-hidden="true"></i>
+                    </button>
+                </li>
+                <li class="page-item @(Model.PageNumber <= 1 ? "disabled" : string.Empty)">
+                    <button type="button"
+                            class="page-link"
+                            aria-label="Page précédente"
+                            data-xal-table-page="previous"
+                            disabled="@(Model.PageNumber <= 1 ? "disabled" : null)">
+                        <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                    </button>
+                </li>
+                <li class="page-item">
+                    <label for="@Model.PageSelectId" class="visually-hidden">Choisir une page</label>
+                    <select id="@Model.PageSelectId"
+                            class="form-select form-select-sm xal-pagination__select"
+                            data-xal-table-page-select="@Model.TableSelector">
+                        @for (int pageNumber = 1; pageNumber <= Model.TotalPageCount; pageNumber++)
                         {
-                            <option value="@pageNumber" selected>Page @pageNumber</option>
+                            if (pageNumber == Model.PageNumber)
+                            {
+                                <option value="@pageNumber" selected>Page @pageNumber</option>
+                            }
+                            else
+                            {
+                                <option value="@pageNumber">Page @pageNumber</option>
+                            }
                         }
-                        else
-                        {
-                            <option value="@pageNumber">Page @pageNumber</option>
-                        }
-                    }
-                </select>
-            </li>
-            <li class="page-item @(Model.PageNumber >= Model.TotalPageCount ? "disabled" : string.Empty)">
-                <button type="button"
-                        class="page-link"
-                        aria-label="Page suivante"
-                        data-xal-table-page="next"
-                        disabled="@(Model.PageNumber >= Model.TotalPageCount ? "disabled" : null)">
-                    <i class="bi bi-chevron-right" aria-hidden="true"></i>
-                </button>
-            </li>
-            <li class="page-item @(Model.PageNumber >= Model.TotalPageCount ? "disabled" : string.Empty)">
-                <button type="button"
-                        class="page-link"
-                        aria-label="Dernière page"
-                        data-xal-table-page="last"
-                        disabled="@(Model.PageNumber >= Model.TotalPageCount ? "disabled" : null)">
-                    <i class="bi bi-chevron-double-right" aria-hidden="true"></i>
-                </button>
-            </li>
-        </ul>
-    </nav>
+                    </select>
+                </li>
+                <li class="page-item @(Model.PageNumber >= Model.TotalPageCount ? "disabled" : string.Empty)">
+                    <button type="button"
+                            class="page-link"
+                            aria-label="Page suivante"
+                            data-xal-table-page="next"
+                            disabled="@(Model.PageNumber >= Model.TotalPageCount ? "disabled" : null)">
+                        <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                    </button>
+                </li>
+                <li class="page-item @(Model.PageNumber >= Model.TotalPageCount ? "disabled" : string.Empty)">
+                    <button type="button"
+                            class="page-link"
+                            aria-label="Dernière page"
+                            data-xal-table-page="last"
+                            disabled="@(Model.PageNumber >= Model.TotalPageCount ? "disabled" : null)">
+                        <i class="bi bi-chevron-double-right" aria-hidden="true"></i>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+    }
 </div>
