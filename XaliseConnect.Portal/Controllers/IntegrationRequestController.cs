@@ -203,14 +203,16 @@ public sealed class IntegrationRequestController : Controller
     /// <summary>
     /// Supprime les demandes d'intégration sélectionnées.
     /// </summary>
-    /// <param name="recordIds">Identifiants des demandes sélectionnées.</param>
+    /// <param name="requests">Identifiants et numéros des demandes sélectionnées.</param>
     /// <param name="cancellationToken">Jeton d'annulation de la demande.</param>
-    /// <returns>Résultat individuel de suppression pour chaque demande sélectionnée.</returns>
+    /// <returns>Vue partielle décrivant le résultat de la suppression groupée.</returns>
     /// <exception cref="OperationCanceledException">Si la demande a été annulée.</exception>
     [HttpPost("supprime-selection", Name = IntegrationRequestRoute.CSTS_DELETE_SELECTED)]
-    public async Task<IActionResult> DeleteSelectedAsync([FromBody] int[]? recordIds, CancellationToken cancellationToken)
+    public async Task<IActionResult> DeleteSelectedAsync([FromBody] IntegrationRequestBulkDeletionRequestItem[]? requests, CancellationToken cancellationToken)
     {
-        if (recordIds is null || recordIds.Length == 0 || recordIds.Any(recordId => recordId <= 0))
+        if (requests is null
+            || requests.Length == 0
+            || requests.Any(request => request.RecordId <= 0 || string.IsNullOrWhiteSpace(request.RequestNumber)))
         {
             return this.BadRequest(new
             {
@@ -220,20 +222,48 @@ public sealed class IntegrationRequestController : Controller
 
         try
         {
+            int[] recordIds = requests.Select(request => request.RecordId).Distinct().ToArray();
+
             IReadOnlyList<IntegrationRequestDeletionItemResult> deletionResults = await this._integrationRequestCommandService.DeleteIntegrationRequestsAsync(
                 recordIds,
                 cancellationToken
             );
 
-            return this.Ok(new
+            Dictionary<int, string> requestNumbersById = requests
+                .GroupBy(request => request.RecordId)
+                .ToDictionary(group => group.Key, group => group.First().RequestNumber);
+
+            List<string> deletedRequestNumbers = new List<string>();
+            List<IntegrationRequestDeletionFailureViewModel> failedRequests = new List<IntegrationRequestDeletionFailureViewModel>();
+
+            foreach (IntegrationRequestDeletionItemResult deletionResult in deletionResults)
             {
-                results = deletionResults.Select(deletionResult => new
+                string requestNumber = requestNumbersById.TryGetValue(deletionResult.RecordId, out string? selectedRequestNumber)
+                    ? selectedRequestNumber
+                    : deletionResult.RecordId.ToString();
+
+                if (deletionResult.Outcome == IntegrationRequestDeletionOutcome.Deleted)
                 {
-                    recordId    = deletionResult.RecordId,
-                    isDeleted   = deletionResult.Outcome == IntegrationRequestDeletionOutcome.Deleted,
-                    message     = deletionResult.Outcome.GetDescription()
-                })
-            });
+                    deletedRequestNumbers.Add(requestNumber);
+                }
+                else
+                {
+                    failedRequests.Add(
+                        new IntegrationRequestDeletionFailureViewModel(
+                            requestNumber,
+                            deletionResult.Outcome.GetDescription()
+                        )
+                    );
+                }
+            }
+
+            IntegrationRequestDeletionSummaryViewModel viewModel = new IntegrationRequestDeletionSummaryViewModel(
+                deletedRequestNumbers,
+                failedRequests,
+                recordIds.Length
+            );
+
+            return this.PartialView("_IntegrationRequestDeletionSummary", viewModel);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -241,7 +271,7 @@ public sealed class IntegrationRequestController : Controller
         }
         catch (Exception exception)
         {
-            this._logger.LogError(exception, "Une erreur inattendue est survenue lors de la suppression groupée des demandes {IntegrationRequestIds}.", recordIds);
+            this._logger.LogError(exception, "Une erreur inattendue est survenue lors de la suppression groupée des demandes sélectionnées.");
 
             return this.StatusCode(StatusCodes.Status500InternalServerError, new
             {

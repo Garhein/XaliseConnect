@@ -1,0 +1,35 @@
+﻿@using XaliseConnect.Portal.Models.IntegrationRequest
+@model IntegrationRequestDeletionSummaryViewModel
+
+<div data-xal-deletion-summary
+     data-xal-deletion-success-count="@Model.DeletedCount"
+     data-xal-deletion-failure-count="@Model.FailedCount"
+     data-xal-deletion-total-count="@Model.TotalCount">
+    <div class="row g-3">
+        <section class="col-12 col-md-6" aria-labelledby="xal-id-deleted-requests-title">
+            <h3 id="xal-id-deleted-requests-title" class="h6">
+                Demandes supprimées (@Model.DeletedCount)
+            </h3>
+            <ul class="list-group list-group-flush small overflow-auto" style="max-height: 45vh">
+                @foreach (string requestNumber in Model.DeletedRequestNumbers)
+                {
+                    <li class="list-group-item px-0">@requestNumber</li>
+                }
+            </ul>
+        </section>
+
+        <section class="col-12 col-md-6" aria-labelledby="xal-id-failed-requests-title">
+            <h3 id="xal-id-failed-requests-title" class="h6">
+                Demandes en échec (@Model.FailedCount)
+            </h3>
+            <ul class="list-group list-group-flush small overflow-auto" style="max-height: 45vh">
+                @foreach (IntegrationRequestDeletionFailureViewModel failedRequest in Model.FailedRequests)
+                {
+                    <li class="list-group-item px-0">
+                        <strong>@failedRequest.RequestNumber</strong> : @failedRequest.Message
+                    </li>
+                }
+            </ul>
+        </section>
+    </div>
+</div>

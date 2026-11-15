@@ -53,14 +53,7 @@ async function confirmDelete(trigger) {
     }
 
     const recordLabel = trigger.getAttribute(XalConstants.dataNames.xalise.recordLabel) ?? context.value;
-
-    const content = document.createElement('p');
-    content.classList.add(XalConstants.cssClasses.text.justify);
-    content.append('Êtes-vous sûr de vouloir supprimer la demande d\'intégration ');
-
-    const identifier        = document.createElement('b');
-    identifier.textContent  = recordLabel;
-    content.append(identifier, ' ?');
+    const content     = `Êtes-vous sûr de vouloir supprimer la demande d'intégration ${recordLabel} ?`;
 
     await XalDialog.show({
         title: 'Supprimer la demande',
@@ -144,7 +137,7 @@ async function confirmDeleteSelected(trigger) {
 
             return {
                 recordId: Number(row?.getAttribute(XalConstants.dataNames.xalise.recordId)),
-                recordLabel: deleteButton?.getAttribute(XalConstants.dataNames.xalise.recordLabel) ?? '',
+                requestNumber: deleteButton?.getAttribute(XalConstants.dataNames.xalise.recordLabel) ?? '',
             };
         })
         .filter((request) => Number.isInteger(request.recordId) && request.recordId > 0);
@@ -154,10 +147,7 @@ async function confirmDeleteSelected(trigger) {
         return;
     }
 
-    const content = document.createElement('p');
-    content.classList.add(XalConstants.cssClasses.text.justify);
-
-    content.textContent = selectedRequests.length === 1
+    const content = selectedRequests.length === 1
         ? 'Confirmez-vous la suppression de la demande sélectionnée ?'
         : `Confirmez-vous la suppression des ${selectedRequests.length} demandes sélectionnées ?`;
 
@@ -181,7 +171,7 @@ async function confirmDeleteSelected(trigger) {
  *
  * @param   {string}                deleteUrl        URL de suppression groupée générée par le serveur.
  * @param   {HTMLTableElement}      table            Tableau contenant les demandes sélectionnées.
- * @param   {Array<{recordId:number, recordLabel:string}>} selectedRequests Demandes confirmées par l'utilisateur.
+ * @param   {Array<{recordId:number, requestNumber:string}>} selectedRequests Demandes confirmées par l'utilisateur.
  * @returns {Promise<void>}
  */
 async function deleteSelectedIntegrationRequests(deleteUrl, table, selectedRequests) {
@@ -191,10 +181,10 @@ async function deleteSelectedIntegrationRequests(deleteUrl, table, selectedReque
             {
                 method: 'POST',
                 headers: {
-                    Accept: 'application/json',
+                    Accept: 'text/html',
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(selectedRequests.map((request) => request.recordId)),
+                body: JSON.stringify(selectedRequests),
             },
             {
                 nav: false,
@@ -203,50 +193,56 @@ async function deleteSelectedIntegrationRequests(deleteUrl, table, selectedReque
             }
         );
 
-        const responseBody  = await response.json();
-        const results       = responseBody.results;
+        const responseHtml      = await response.text();
+        const responseDocument  = new DOMParser().parseFromString(responseHtml, 'text/html');
+        const deletionSummary   = responseDocument.body.querySelector(`[${XalConstants.dataNames.xalise.deletionSummary}]`);
 
-        if (!Array.isArray(results) || results.length === 0) {
-            XalToast.error('Le serveur n’a renvoyé aucun résultat de suppression. Aucune actualisation n’a été effectuée.');
+        if (!(deletionSummary instanceof HTMLElement)) {
+            XalToast.error('Le serveur n’a pas renvoyé le récapitulatif des suppressions. Aucune actualisation n’a été effectuée.');
             return;
         }
 
-        const requestLabelsById = new Map(selectedRequests.map((request) => [request.recordId, request.recordLabel]));
-        const deletedResults    = results.filter((result) => result.isDeleted === true);
-        const failedResults     = results.filter((result) => result.isDeleted !== true);
+        const deletedCount   = Number(deletionSummary.getAttribute(XalConstants.dataNames.xalise.deletionSuccessCount));
+        const failedCount    = Number(deletionSummary.getAttribute(XalConstants.dataNames.xalise.deletionFailureCount));
+        const requestedCount = Number(deletionSummary.getAttribute(XalConstants.dataNames.xalise.deletionTotalCount));
 
-        if (deletedResults.length === 0) {
-            const failureMessages = failedResults.map((result) => {
-                const recordLabel = requestLabelsById.get(result.recordId) ?? String(result.recordId);
-                return `${recordLabel} : ${result.message}`;
-            });
+        const hasValidCounts = Number.isInteger(deletedCount)
+            && deletedCount >= 0
+            && Number.isInteger(failedCount)
+            && failedCount >= 0
+            && Number.isInteger(requestedCount)
+            && requestedCount > 0
+            && requestedCount === selectedRequests.length
+            && deletedCount + failedCount === requestedCount;
 
-            XalToast.error(`Aucune demande n’a été supprimée. ${failureMessages.join(' ')}`);
+        if (!hasValidCounts) {
+            XalToast.error('Le résultat de la suppression est incomplet ou incohérent. Vérifiez la liste avant de relancer l’opération.');
+
+            if (deletedCount > 0) {
+                refreshIntegrationRequestSearch(table);
+            }
+
             return;
         }
 
-        if (failedResults.length === 0) {
-            const deletedMessage = deletedResults.length === 1
+        const hasAllFailed = deletedCount === 0 && failedCount === requestedCount;
+
+        if (hasAllFailed) {
+            XalToast.error(`Aucune des ${requestedCount} demandes sélectionnées n’a pu être supprimée. La liste n’a pas été modifiée.`);
+            return;
+        }
+
+        const hasAllSucceeded = deletedCount === requestedCount && failedCount === 0;
+
+        if (hasAllSucceeded) {
+            const deletedMessage = deletedCount === 1
                 ? '1 demande a été supprimée avec succès.'
-                : `${deletedResults.length} demandes ont été supprimées avec succès.`;
+                : `${deletedCount} demandes ont été supprimées avec succès.`;
 
             XalToast.success(deletedMessage);
         }
         else {
-            const failureMessages = failedResults.map((result) => {
-                const recordLabel = requestLabelsById.get(result.recordId) ?? String(result.recordId);
-                return `${recordLabel} : ${result.message}`;
-            });
-
-            const deletedCountMessage = deletedResults.length === 1
-                ? '1 demande a été supprimée.'
-                : `${deletedResults.length} demandes ont été supprimées.`;
-
-            const failedCountMessage = failedResults.length === 1
-                ? '1 demande n’a pas été supprimée.'
-                : `${failedResults.length} demandes n’ont pas été supprimées.`;
-
-            XalToast.warning(`${deletedCountMessage} ${failedCountMessage} ${failureMessages.join(' ')}`);
+            await showBulkDeletionSummary(deletionSummary);
         }
 
         refreshIntegrationRequestSearch(table);
@@ -254,6 +250,28 @@ async function deleteSelectedIntegrationRequests(deleteUrl, table, selectedReque
     catch {
         // Le callback onError a affiché un message utilisateur; aucune actualisation n'est demandée.
     }
+}
+
+/**
+ * Affiche le détail du résultat rendu par une vue Razor, puis attend la fermeture de la modale.
+ *
+ * @param   {HTMLElement} summaryView   Récapitulatif HTML renvoyé par le serveur.
+ * @returns {Promise<void>}             Promesse terminée après la fermeture de la modale.
+ */
+async function showBulkDeletionSummary(summaryView) {
+    const dialogElement = await XalDialog.show({
+        title: 'Résultat de la suppression',
+        content: summaryView,
+        size: 'lg',
+        variant: 'warning',
+        dismissible: false,
+        showCloseButton: false,
+        preset: 'information',
+    });
+
+    await new Promise((resolve) => {
+        dialogElement.addEventListener('hidden.bs.modal', resolve, { once: true });
+    });
 }
 
 /**
