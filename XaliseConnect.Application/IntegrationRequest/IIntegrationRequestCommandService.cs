@@ -1,4 +1,5 @@
-using XaliseConnect.Application.IntegrationRequest.Enums;
+﻿using XaliseConnect.Application.IntegrationRequest.Enums;
+using XaliseConnect.Application.IntegrationRequest.Models;
 
 namespace XaliseConnect.Application.IntegrationRequest;
 
@@ -15,4 +16,14 @@ public interface IIntegrationRequestCommandService
     /// <returns>Résultat indiquant si la demande a été supprimée, est introuvable ou si une erreur est survenue.</returns>
     /// <exception cref="OperationCanceledException">Si l'opération a été annulée.</exception>
     Task<IntegrationRequestDeletionOutcome> DeleteIntegrationRequestAsync(int recordId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Supprime plusieurs demandes d'intégration.
+    /// </summary>
+    /// <param name="recordIds">Identifiants des demandes à supprimer.</param>
+    /// <param name="cancellationToken">Jeton d'annulation de la demande.</param>
+    /// <returns>Résultat de suppression associé à chaque identifiant distinct fourni.</returns>
+    /// <exception cref="ArgumentNullException">Si <paramref name="recordIds"/> est <see langword="null"/>.</exception>
+    /// <exception cref="OperationCanceledException">Si l'opération a été annulée.</exception>
+    Task<IReadOnlyList<IntegrationRequestDeletionItemResult>> DeleteIntegrationRequestsAsync(IReadOnlyCollection<int> recordIds, CancellationToken cancellationToken);
 }

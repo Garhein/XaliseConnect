@@ -31,6 +31,8 @@ export const XalConstants = Object.freeze({
             popoverValue:                   'data-xal-popover-value',
             popoverValueCssClasses:         'data-xal-popover-value-css-classes',
             deleteUrl:                      'data-xal-delete-url',
+            deleteSelected:                 'data-xal-delete-selected',
+            deleteSelectedUrl:              'data-xal-delete-selected-url',
             recordId:                       'data-xal-record-id',
             recordLabel:                    'data-xal-record-label',
             tableContainerActions :         'data-xal-table-container-actions',

@@ -14,4 +14,9 @@ public static class IntegrationRequestRoute
     /// Nom de la route de suppression d'une demande d'intégration.
     /// </summary>
     public const string CSTS_DELETE = "IntegrationRequest_Delete";
+
+    /// <summary>
+    /// Nom de la route de suppression groupée des demandes d'intégration.
+    /// </summary>
+    public const string CSTS_DELETE_SELECTED = "IntegrationRequest_DeleteSelected";
 }

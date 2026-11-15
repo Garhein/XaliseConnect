@@ -1,4 +1,5 @@
-using XaliseConnect.Application.IntegrationRequest.Enums;
+﻿using XaliseConnect.Application.IntegrationRequest.Enums;
+using XaliseConnect.Application.IntegrationRequest.Models;
 
 namespace XaliseConnect.Application.IntegrationRequest;
 
@@ -17,5 +18,16 @@ public sealed class MockIntegrationRequestCommandService : IIntegrationRequestCo
             : IntegrationRequestDeletionOutcome.NotFound;
 
         return Task.FromResult(result);
+    }
+
+    /// <inheritdoc />
+    public Task<IReadOnlyList<IntegrationRequestDeletionItemResult>> DeleteIntegrationRequestsAsync(IReadOnlyCollection<int> recordIds, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(recordIds);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        IReadOnlyList<IntegrationRequestDeletionItemResult> results = MockIntegrationRequestStore._TryRemoveMany(recordIds);
+
+        return Task.FromResult(results);
     }
 }

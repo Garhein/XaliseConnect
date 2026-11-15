@@ -1,4 +1,5 @@
-﻿using XaliseConnect.Application.IntegrationRequest.Models;
+﻿using XaliseConnect.Application.IntegrationRequest.Enums;
+using XaliseConnect.Application.IntegrationRequest.Models;
 
 namespace XaliseConnect.Application.IntegrationRequest;
 
@@ -42,6 +43,37 @@ internal static class MockIntegrationRequestStore
             MockIntegrationRequestStore._requests.RemoveAt(requestIndex);
 
             return true;
+        }
+    }
+
+    /// <summary>
+    /// Supprime plusieurs demandes et conserve un résultat pour chaque identifiant distinct.
+    /// </summary>
+    /// <param name="recordIds">Identifiants des demandes à supprimer.</param>
+    /// <returns>Résultats correspondant aux identifiants traités.</returns>
+    internal static IReadOnlyList<IntegrationRequestDeletionItemResult> _TryRemoveMany(IReadOnlyCollection<int> recordIds)
+    {
+        lock (MockIntegrationRequestStore._syncRoot)
+        {
+            List<IntegrationRequestDeletionItemResult> results = new List<IntegrationRequestDeletionItemResult>();
+
+            foreach (int recordId in recordIds.Distinct())
+            {
+                int requestIndex = MockIntegrationRequestStore._requests.FindIndex(request => request.Id == recordId);
+
+                IntegrationRequestDeletionOutcome outcome = requestIndex < 0
+                    ? IntegrationRequestDeletionOutcome.NotFound
+                    : IntegrationRequestDeletionOutcome.Deleted;
+
+                if (requestIndex >= 0)
+                {
+                    MockIntegrationRequestStore._requests.RemoveAt(requestIndex);
+                }
+
+                results.Add(new IntegrationRequestDeletionItemResult(recordId, outcome));
+            }
+
+            return results;
         }
     }
 }

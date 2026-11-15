@@ -12,6 +12,7 @@ const SELECTORS = Object.freeze({
     history:        '.xal-table__row-actions--history',
     content:        '.xal-table__row-actions--content',
     failure:        '.xal-table__failure-trigger',
+    deleteSelected: `[${XalConstants.dataNames.xalise.deleteSelected}]`,
     searchResults:  '#xal-id-integration-request-results',
 });
 
@@ -103,20 +104,174 @@ async function deleteIntegrationRequest(deleteUrl, recordContext, recordLabel) {
 
         XalToast.success(`La demande ${recordLabel} a été supprimée avec succès.`);
 
-        const table                 = recordContext.element.closest('table');
-        const searchFormSelector    = table?.getAttribute(XalConstants.dataNames.xalise.tableSearchForm);
-        const searchForm            = searchFormSelector ? document.querySelector(searchFormSelector) : null;
-
-        if (!(searchForm instanceof HTMLFormElement)) {
-            console.error('[IntegrationRequest] Le formulaire de recherche est introuvable après la suppression de la demande.');
-            return;
-        }
-
-        searchForm.dispatchEvent(new Event('xal-search:state-change'));
+        const table = recordContext.element.closest('table');
+        refreshIntegrationRequestSearch(table);
     }
     catch {
         // Le callback onError a déjà affiché un message adapté et aucune actualisation n'est demandée.
     }
+}
+
+/**
+ * Demande confirmation avant de supprimer les demandes sélectionnées.
+ *
+ * @param   {HTMLElement} trigger Bouton de suppression groupée.
+ * @returns {Promise<void>}       Promesse terminée après la fermeture de la modale.
+ * @throws  {Error}               Si la modale ne peut pas être initialisée ou affichée.
+ */
+async function confirmDeleteSelected(trigger) {
+    const deleteUrl = trigger.getAttribute(XalConstants.dataNames.xalise.deleteSelectedUrl);
+
+    if (!deleteUrl) {
+        XalToast.error('Impossible de déterminer l’adresse de suppression des demandes sélectionnées.');
+        return;
+    }
+
+    const actionsContainer  = trigger.closest(`[${XalConstants.dataNames.xalise.tableContainerActions}]`);
+    const tableSelector     = actionsContainer?.getAttribute(XalConstants.dataNames.xalise.tableContainerActions);
+    const table             = tableSelector ? document.querySelector(tableSelector) : null;
+
+    if (!(table instanceof HTMLTableElement)) {
+        XalToast.error('Le tableau des demandes sélectionnées est introuvable.');
+        return;
+    }
+
+    const selectedRequests = [...table.querySelectorAll(XalConstants.cssQueries.table.selection.checkRow)]
+        .filter((checkbox) => checkbox instanceof HTMLInputElement && checkbox.checked)
+        .map((checkbox) => {
+            const row           = checkbox.closest(XalConstants.cssQueries.xalise.record);
+            const deleteButton  = row?.querySelector(SELECTORS.delete);
+
+            return {
+                recordId: Number(row?.getAttribute(XalConstants.dataNames.xalise.recordId)),
+                recordLabel: deleteButton?.getAttribute(XalConstants.dataNames.xalise.recordLabel) ?? '',
+            };
+        })
+        .filter((request) => Number.isInteger(request.recordId) && request.recordId > 0);
+
+    if (selectedRequests.length === 0) {
+        XalToast.warning('Sélectionnez au moins une demande à supprimer.');
+        return;
+    }
+
+    const content = document.createElement('p');
+    content.classList.add(XalConstants.cssClasses.text.justify);
+
+    content.textContent = selectedRequests.length === 1
+        ? 'Confirmez-vous la suppression de la demande sélectionnée ?'
+        : `Confirmez-vous la suppression des ${selectedRequests.length} demandes sélectionnées ?`;
+
+    await XalDialog.show({
+        title: 'Supprimer les demandes sélectionnées',
+        content,
+        dismissible: false,
+        showCloseButton: false,
+        preset: 'deleteConfirmation',
+        variant: XalConstants.cssClasses.modal.variant.danger,
+        buttonOverrides: {
+            delete: {
+                action: async () => deleteSelectedIntegrationRequests(deleteUrl, table, selectedRequests),
+            },
+        },
+    });
+}
+
+/**
+ * Envoie les identifiants sélectionnés, affiche le bilan et actualise la liste si au moins une suppression réussit.
+ *
+ * @param   {string}                deleteUrl        URL de suppression groupée générée par le serveur.
+ * @param   {HTMLTableElement}      table            Tableau contenant les demandes sélectionnées.
+ * @param   {Array<{recordId:number, recordLabel:string}>} selectedRequests Demandes confirmées par l'utilisateur.
+ * @returns {Promise<void>}
+ */
+async function deleteSelectedIntegrationRequests(deleteUrl, table, selectedRequests) {
+    try {
+        const response = await XalHttp.fetch(
+            deleteUrl,
+            {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(selectedRequests.map((request) => request.recordId)),
+            },
+            {
+                nav: false,
+                overlay: 'Suppression des demandes sélectionnées en cours...',
+                onError: async (error) => showDeleteRequestError(error, null, true),
+            }
+        );
+
+        const responseBody  = await response.json();
+        const results       = responseBody.results;
+
+        if (!Array.isArray(results) || results.length === 0) {
+            XalToast.error('Le serveur n’a renvoyé aucun résultat de suppression. Aucune actualisation n’a été effectuée.');
+            return;
+        }
+
+        const requestLabelsById = new Map(selectedRequests.map((request) => [request.recordId, request.recordLabel]));
+        const deletedResults    = results.filter((result) => result.isDeleted === true);
+        const failedResults     = results.filter((result) => result.isDeleted !== true);
+
+        if (deletedResults.length === 0) {
+            const failureMessages = failedResults.map((result) => {
+                const recordLabel = requestLabelsById.get(result.recordId) ?? String(result.recordId);
+                return `${recordLabel} : ${result.message}`;
+            });
+
+            XalToast.error(`Aucune demande n’a été supprimée. ${failureMessages.join(' ')}`);
+            return;
+        }
+
+        if (failedResults.length === 0) {
+            const deletedMessage = deletedResults.length === 1
+                ? '1 demande a été supprimée avec succès.'
+                : `${deletedResults.length} demandes ont été supprimées avec succès.`;
+
+            XalToast.success(deletedMessage);
+        }
+        else {
+            const failureMessages = failedResults.map((result) => {
+                const recordLabel = requestLabelsById.get(result.recordId) ?? String(result.recordId);
+                return `${recordLabel} : ${result.message}`;
+            });
+
+            const deletedCountMessage = deletedResults.length === 1
+                ? '1 demande a été supprimée.'
+                : `${deletedResults.length} demandes ont été supprimées.`;
+
+            const failedCountMessage = failedResults.length === 1
+                ? '1 demande n’a pas été supprimée.'
+                : `${failedResults.length} demandes n’ont pas été supprimées.`;
+
+            XalToast.warning(`${deletedCountMessage} ${failedCountMessage} ${failureMessages.join(' ')}`);
+        }
+
+        refreshIntegrationRequestSearch(table);
+    }
+    catch {
+        // Le callback onError a affiché un message utilisateur; aucune actualisation n'est demandée.
+    }
+}
+
+/**
+ * Recharge les résultats du tableau en conservant les critères de recherche et l'état de pagination/tri.
+ *
+ * @param   {HTMLTableElement|null} table Tableau dont les résultats doivent être rechargés.
+ * @returns {void}
+ */
+function refreshIntegrationRequestSearch(table) {
+    const searchFormSelector = table?.getAttribute(XalConstants.dataNames.xalise.tableSearchForm);
+    const searchForm         = searchFormSelector ? document.querySelector(searchFormSelector) : null;
+
+    if (!(searchForm instanceof HTMLFormElement)) {
+        console.error('[IntegrationRequest] Le formulaire de recherche est introuvable après la suppression des demandes.');
+        return;
+    }
+
+    searchForm.dispatchEvent(new Event('xal-search:state-change'));
 }
 
 /**
@@ -126,13 +281,14 @@ async function deleteIntegrationRequest(deleteUrl, recordContext, recordLabel) {
  * @param   {string}          recordLabel Numéro lisible de la demande.
  * @returns {Promise<void>}        Promesse terminée après l'affichage du message.
  */
-async function showDeleteRequestError(error, recordLabel) {
+async function showDeleteRequestError(error, recordLabel, isBulkOperation = false) {
     if (!(error instanceof Response)) {
-        XalToast.error('La communication avec le serveur a échoué. La demande n’a pas été supprimée. Vérifiez votre connexion puis réessayez.');
+        const targetLabel = isBulkOperation ? 'Les demandes sélectionnées n’ont pas été supprimées.' : 'La demande n’a pas été supprimée.';
+        XalToast.error(`La communication avec le serveur a échoué. ${targetLabel} Vérifiez votre connexion puis réessayez.`);
         return;
     }
 
-    if (error.status === 404) {
+    if (error.status === 404 && recordLabel) {
         XalToast.error(`La demande ${recordLabel} n’existe plus ou a déjà été supprimée.`);
         return;
     }
@@ -283,13 +439,16 @@ export function initIntegrationRequestActions(root = document) {
         if (!(event.target instanceof Element)) return;
 
         const trigger = event.target.closest(
-            `${SELECTORS.delete}, ${SELECTORS.history}, ${SELECTORS.content}, ${SELECTORS.failure}`
+            `${SELECTORS.delete}, ${SELECTORS.deleteSelected}, ${SELECTORS.history}, ${SELECTORS.content}, ${SELECTORS.failure}`
         );
         
         if (!trigger || !root.contains(trigger)) return;
 
         if (trigger.matches(SELECTORS.delete)) {
             void confirmDelete(trigger);
+        }
+        else if (trigger.matches(SELECTORS.deleteSelected)) {
+            void confirmDeleteSelected(trigger);
         }
         else if (trigger.matches(SELECTORS.history)) {
             void showHistory(trigger);

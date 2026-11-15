@@ -201,6 +201,56 @@ public sealed class IntegrationRequestController : Controller
     }
 
     /// <summary>
+    /// Supprime les demandes d'intégration sélectionnées.
+    /// </summary>
+    /// <param name="recordIds">Identifiants des demandes sélectionnées.</param>
+    /// <param name="cancellationToken">Jeton d'annulation de la demande.</param>
+    /// <returns>Résultat individuel de suppression pour chaque demande sélectionnée.</returns>
+    /// <exception cref="OperationCanceledException">Si la demande a été annulée.</exception>
+    [HttpPost("supprime-selection", Name = IntegrationRequestRoute.CSTS_DELETE_SELECTED)]
+    public async Task<IActionResult> DeleteSelectedAsync([FromBody] int[]? recordIds, CancellationToken cancellationToken)
+    {
+        if (recordIds is null || recordIds.Length == 0 || recordIds.Any(recordId => recordId <= 0))
+        {
+            return this.BadRequest(new
+            {
+                message = "Sélectionnez au moins une demande d'intégration valide à supprimer."
+            });
+        }
+
+        try
+        {
+            IReadOnlyList<IntegrationRequestDeletionItemResult> deletionResults = await this._integrationRequestCommandService.DeleteIntegrationRequestsAsync(
+                recordIds,
+                cancellationToken
+            );
+
+            return this.Ok(new
+            {
+                results = deletionResults.Select(deletionResult => new
+                {
+                    recordId    = deletionResult.RecordId,
+                    isDeleted   = deletionResult.Outcome == IntegrationRequestDeletionOutcome.Deleted,
+                    message     = deletionResult.Outcome.GetDescription()
+                })
+            });
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            this._logger.LogError(exception, "Une erreur inattendue est survenue lors de la suppression groupée des demandes {IntegrationRequestIds}.", recordIds);
+
+            return this.StatusCode(StatusCodes.Status500InternalServerError, new
+            {
+                message = IntegrationRequestDeletionOutcome.UnexpectedFailure.GetDescription()
+            });
+        }
+    }
+
+    /// <summary>
     /// Normalise les paramètres de tri et de pagination fournis par la requête.
     /// </summary>
     /// <param name="pageNumber">Numéro de page demandé.</param>
