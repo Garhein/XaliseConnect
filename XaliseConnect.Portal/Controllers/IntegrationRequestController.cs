@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using XaliseConnect.Application.IntegrationRequest;
 using XaliseConnect.Application.IntegrationRequest.Models;
+using XaliseConnect.Application.IntegrationRequest.Enums;
 using XaliseConnect.Application.Pagination;
 using XaliseConnect.Portal.Models.IntegrationRequest;
 using XaliseConnect.Portal.Helpers;
 using XaliseConnect.Portal.Routes;
 using XaliseConnect.Domain.Enums;
+using XaliseConnect.Domain.Helpers;
 using XaliseConnect.Portal.Models.Pagination;
 
 namespace XaliseConnect.Portal.Controllers;
@@ -23,18 +25,31 @@ public sealed class IntegrationRequestController : Controller
     private const string CSTS_PAGE_ITEM_LABEL       = "demande(s)";
     private const string CSTS_PAGINATION_LABEL      = "Pagination des demandes d'intégration";
 
-    private readonly IIntegrationRequestQueryService _integrationRequestQueryService;
+    private readonly IIntegrationRequestQueryService        _integrationRequestQueryService;
+    private readonly IIntegrationRequestCommandService      _integrationRequestCommandService;
+    private readonly ILogger<IntegrationRequestController>  _logger;
 
     /// <summary>
     /// Initialise le contrôleur des demandes d'intégration.
     /// </summary>
-    /// <param name="integrationRequestQueryService">Service d'application qui traite les demandes liées aux demandes d'intégration.</param>
+    /// <param name="integrationRequestQueryService">Service d'application qui traite les demandes liées à l'affichage des demandes d'intégration.</param>
+    /// <param name="integrationRequestCommandService">Service d'application qui traite les actions de modifications sur les demandes d'intégration.</param>
+    /// <param name="logger">Journal utilisé pour consigner les erreurs inattendues.</param>
     /// <exception cref="ArgumentNullException">Si <paramref name="integrationRequestQueryService"/> est <see langword="null"/>.</exception>
-    public IntegrationRequestController(IIntegrationRequestQueryService integrationRequestQueryService)
+    /// <exception cref="ArgumentNullException">Si <paramref name="integrationRequestCommandService"/> est <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException">Si <paramref name="logger"/> est <see langword="null"/>.</exception>
+    public IntegrationRequestController(
+        IIntegrationRequestQueryService integrationRequestQueryService,
+        IIntegrationRequestCommandService integrationRequestCommandService,
+        ILogger<IntegrationRequestController> logger)
     {
         ArgumentNullException.ThrowIfNull(integrationRequestQueryService);
+        ArgumentNullException.ThrowIfNull(integrationRequestCommandService);
+        ArgumentNullException.ThrowIfNull(logger);
 
-        this._integrationRequestQueryService = integrationRequestQueryService;
+        this._integrationRequestQueryService    = integrationRequestQueryService;
+        this._integrationRequestCommandService  = integrationRequestCommandService;
+        this._logger = logger;
     }
 
     /// <summary>
@@ -60,7 +75,8 @@ public sealed class IntegrationRequestController : Controller
 
         PagedResult<IntegrationRequestListItem> integrationRequests = await this._integrationRequestQueryService.GetIntegrationRequestListAsync(
             searchCriteriaForInitialList,
-            cancellationToken);
+            cancellationToken
+        );
 
         IntegrationRequestSearchCriteriaViewModel searchCriteria = new IntegrationRequestSearchCriteriaViewModel(
             SelectListHelper.CreateSelectList<EnumStatusReception>(true, "Tous les statuts", true, "Sans statut"),
@@ -126,7 +142,8 @@ public sealed class IntegrationRequestController : Controller
                 searchRequest.Page,
                 searchRequest.PageSize,
                 searchRequest.Sort,
-                searchRequest.Direction ?? IntegrationRequestSortColumn.CSTS_RECEIVED_AT)
+                searchRequest.Direction ?? IntegrationRequestSortColumn.CSTS_RECEIVED_AT
+            )
         };
 
         PagedResult<IntegrationRequestListItem> integrationRequests = await this._integrationRequestQueryService.GetIntegrationRequestListAsync(
@@ -135,6 +152,52 @@ public sealed class IntegrationRequestController : Controller
         );
 
         return this.PartialView("_IntegrationRequestResults", this._CreateResultsViewModel(integrationRequests));
+    }
+
+    /// <summary>
+    /// Supprime une demande d'intégration après vérification de son existence.
+    /// </summary>
+    /// <param name="recordId">Identifiant de la demande à supprimer.</param>
+    /// <param name="cancellationToken">Jeton d'annulation de la demande.</param>
+    /// <returns>Réponse HTTP indiquant le résultat de la suppression.</returns>
+    /// <exception cref="OperationCanceledException">Si la demande a été annulée.</exception>
+    [HttpDelete("{recordId:int}", Name = IntegrationRequestRoute.CSTS_DELETE)]
+    public async Task<IActionResult> DeleteAsync(int recordId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            IntegrationRequestDeletionOutcome deletionOutcome = await this._integrationRequestCommandService.DeleteIntegrationRequestAsync(
+                recordId,
+                cancellationToken
+            );
+
+            int statusCode = deletionOutcome switch
+            {
+                IntegrationRequestDeletionOutcome.Deleted => StatusCodes.Status200OK,
+                IntegrationRequestDeletionOutcome.NotFound => StatusCodes.Status404NotFound,
+                IntegrationRequestDeletionOutcome.ServiceUnavailable => StatusCodes.Status503ServiceUnavailable,
+                IntegrationRequestDeletionOutcome.PersistenceFailure or IntegrationRequestDeletionOutcome.UnexpectedFailure => StatusCodes.Status500InternalServerError,
+                _ => StatusCodes.Status500InternalServerError
+            };
+
+            return this.StatusCode(statusCode, new
+            {
+                message = deletionOutcome.GetDescription()
+            });
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (Exception exception)
+        {
+            this._logger.LogError(exception, "Une erreur inattendue est survenue lors de la suppression de la demande {IntegrationRequestId}.", recordId);
+
+            return this.StatusCode(StatusCodes.Status500InternalServerError, new
+            {
+                message = IntegrationRequestDeletionOutcome.UnexpectedFailure.GetDescription()
+            });
+        }
     }
 
     /// <summary>

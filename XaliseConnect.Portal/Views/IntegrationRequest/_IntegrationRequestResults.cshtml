@@ -1,5 +1,6 @@
 ﻿@using XaliseConnect.Application.IntegrationRequest.Models
 @using XaliseConnect.Portal.Helpers
+@using XaliseConnect.Portal.Routes
 @model XaliseConnect.Portal.Models.IntegrationRequest.IntegrationRequestResultsViewModel
 
 <div class="xal-search-results-content">
@@ -199,6 +200,8 @@
                                         </button>
                                         <button type="button"
                                                 class="btn btn-sm btn-link xal-table__row-actions--delete"
+                                                data-xal-delete-url="@Url.RouteUrl(IntegrationRequestRoute.CSTS_DELETE, new { recordId = req.Id })"
+                                                data-xal-record-label="@req.RequestNumber"
                                                 aria-label="Supprimer la demande @req.RequestNumber"
                                                 title="Supprimer la demande">
                                             <i class="bi bi-trash" aria-hidden="true"></i>

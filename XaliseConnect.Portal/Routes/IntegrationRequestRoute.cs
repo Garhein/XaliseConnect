@@ -9,4 +9,9 @@ public static class IntegrationRequestRoute
     /// Nom de la route de recherche des demandes d'intégration.
     /// </summary>
     public const string CSTS_SEARCH = "IntegrationRequest_Search";
+
+    /// <summary>
+    /// Nom de la route de suppression d'une demande d'intégration.
+    /// </summary>
+    public const string CSTS_DELETE = "IntegrationRequest_Delete";
 }

@@ -18,6 +18,7 @@ public class Program
         // Ajoute les services MVC au conteneur d'injection de dépendances.
         builder.Services.AddControllersWithViews();
         builder.Services.AddSingleton<IIntegrationRequestQueryService, MockIntegrationRequestQueryService>();
+        builder.Services.AddSingleton<IIntegrationRequestCommandService, MockIntegrationRequestCommandService>();
         WebApplication app = builder.Build();
 
         // Configure le pipeline HTTP de l'application.

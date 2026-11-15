@@ -4,7 +4,7 @@ using XaliseConnect.Application.Pagination;
 namespace XaliseConnect.Application.IntegrationRequest;
 
 /// <summary>
-/// Définition des opérations associées aux demandes d'intégration.
+/// Définition des opérations associées à la lecture des demandes d'intégration.
 /// </summary>
 public interface IIntegrationRequestQueryService
 {

@@ -5,13 +5,13 @@ import { initTables } from '../shared/initTables.js';
 import { XalDialog } from '../components/XalDialog.js';
 import { XalToast } from '../components/XalToast.js';
 import { XalLoaderOverlay } from '../loaders/XalLoaderOverlay.js';
+import { XalHttp } from '../core/XalHttp.js';
 
 const SELECTORS = Object.freeze({
     delete:         '.xal-table__row-actions--delete',
     history:        '.xal-table__row-actions--history',
     content:        '.xal-table__row-actions--content',
     failure:        '.xal-table__failure-trigger',
-    record:         '[data-xal-record-id]',
     searchResults:  '#xal-id-integration-request-results',
 });
 
@@ -21,25 +21,44 @@ const TEMPLATE_IDS = Object.freeze({
     error:      'xal-id-static-integration-error',
 });
 
-// =-=-=-=-=-=-=-=-=-=-=-=-
-// TODO: Actions de ligne
-// =-=-=-=-=-=-=-=-=-=-=-=-
+// =-=-=-
+// Actions de ligne
+// =-=-=-
 
+/**
+ * Demande confirmation avant de supprimer une demande d'intégration.
+ *
+ * La fonction récupère l'identifiant et l'URL de suppression depuis les attributs
+ * du déclencheur, puis exécute la suppression uniquement après confirmation.
+ *
+ * @param   {HTMLElement} trigger Bouton ayant déclenché la demande de suppression.
+ * @returns {Promise<void>}       Promesse terminée après la fermeture de la modale.
+ * @throws  {Error}               Si la modale ne peut pas être initialisée ou affichée.
+ */
 async function confirmDelete(trigger) {
     const context = getClosestAttributeContext(
         trigger,
-        SELECTORS.record,
+        XalConstants.cssQueries.xalise.record,
         XalConstants.dataNames.xalise.recordId
     );
 
     if (!context) return;
 
+    const deleteUrl = trigger.getAttribute(XalConstants.dataNames.xalise.deleteUrl);
+
+    if (!deleteUrl) {
+        XalToast.error('Impossible de déterminer l’adresse de suppression de la demande.');
+        return;
+    }
+
+    const recordLabel = trigger.getAttribute(XalConstants.dataNames.xalise.recordLabel) ?? context.value;
+
     const content = document.createElement('p');
-    content.classList.add('text-justify');
+    content.classList.add(XalConstants.cssClasses.text.justify);
     content.append('Êtes-vous sûr de vouloir supprimer la demande d\'intégration ');
 
-    const identifier = document.createElement('b');
-    identifier.textContent = context.value;
+    const identifier        = document.createElement('b');
+    identifier.textContent  = recordLabel;
     content.append(identifier, ' ?');
 
     await XalDialog.show({
@@ -48,21 +67,101 @@ async function confirmDelete(trigger) {
         dismissible: false,
         showCloseButton: false,
         preset: 'deleteConfirmation',
-        variant: 'danger',
+        variant: XalConstants.cssClasses.modal.variant.danger,
         buttonOverrides: {
             delete: {
-                action: async () => {
-                    context.element.remove();
-                },
+                action: async () => deleteIntegrationRequest(deleteUrl, context, recordLabel),
             },
         },
     });
 }
 
+/**
+ * Supprime une demande puis recharge les résultats avec les critères et l'état de table actuels.
+ *
+ * @param   {string} deleteUrl      URL de suppression générée par le serveur.
+ * @param   {Object} recordContext  Contexte DOM de la demande à supprimer.
+ * @param   {string} recordLabel    Numéro lisible de la demande.
+ * @returns {Promise<void>}
+ */
+async function deleteIntegrationRequest(deleteUrl, recordContext, recordLabel) {
+    try {
+        await XalHttp.fetch(
+            deleteUrl,
+            {
+                method: 'DELETE',
+                headers: {
+                    Accept: 'application/json',
+                },
+            },
+            {
+                nav: false,
+                overlay: 'Suppression de la demande en cours...',
+                onError: async (error) => showDeleteRequestError(error, recordLabel),
+            }
+        );
+
+        XalToast.success(`La demande ${recordLabel} a été supprimée avec succès.`);
+
+        const table                 = recordContext.element.closest('table');
+        const searchFormSelector    = table?.getAttribute(XalConstants.dataNames.xalise.tableSearchForm);
+        const searchForm            = searchFormSelector ? document.querySelector(searchFormSelector) : null;
+
+        if (!(searchForm instanceof HTMLFormElement)) {
+            console.error('[IntegrationRequest] Le formulaire de recherche est introuvable après la suppression de la demande.');
+            return;
+        }
+
+        searchForm.dispatchEvent(new Event('xal-search:state-change'));
+    }
+    catch {
+        // Le callback onError a déjà affiché un message adapté et aucune actualisation n'est demandée.
+    }
+}
+
+/**
+ * Affiche un message utilisateur adapté à l'échec d'une suppression.
+ *
+ * @param   {Error|Response} error      Erreur réseau ou réponse HTTP en échec.
+ * @param   {string}          recordLabel Numéro lisible de la demande.
+ * @returns {Promise<void>}        Promesse terminée après l'affichage du message.
+ */
+async function showDeleteRequestError(error, recordLabel) {
+    if (!(error instanceof Response)) {
+        XalToast.error('La communication avec le serveur a échoué. La demande n’a pas été supprimée. Vérifiez votre connexion puis réessayez.');
+        return;
+    }
+
+    if (error.status === 404) {
+        XalToast.error(`La demande ${recordLabel} n’existe plus ou a déjà été supprimée.`);
+        return;
+    }
+
+    let message = '';
+
+    try {
+        const responseBody = await error.clone().json();
+        message = responseBody.message ?? responseBody.error ?? '';
+    }
+    catch {
+        // La réponse peut ne pas contenir de corps JSON exploitable.
+    }
+
+    if (!message) {
+        message = {
+            403: 'Vous n’êtes pas autorisé à supprimer cette demande.',
+            500: 'Une erreur du serveur ou du stockage a empêché la suppression. La liste n’a pas été modifiée.',
+            503: 'Le service de suppression est temporairement indisponible. Réessayez ultérieurement.',
+        }[error.status] ?? 'La suppression de la demande a échoué. La liste n’a pas été modifiée.';
+    }
+
+    XalToast.error(message);
+}
+
 async function showHistory(trigger) {
     const context = getClosestAttributeContext(
         trigger,
-        SELECTORS.record,
+        XalConstants.cssQueries.xalise.record,
         XalConstants.dataNames.xalise.recordId
     );
 
@@ -82,7 +181,7 @@ async function showHistory(trigger) {
 async function showRawContent(trigger) {
     const context = getClosestAttributeContext(
         trigger,
-        SELECTORS.record,
+        XalConstants.cssQueries.xalise.record,
         XalConstants.dataNames.xalise.recordId
     );
 
@@ -101,7 +200,7 @@ async function showRawContent(trigger) {
 async function showIntegrationFailure(trigger) {
     const context = getClosestAttributeContext(
         trigger,
-        SELECTORS.record,
+        XalConstants.cssQueries.xalise.record,
         XalConstants.dataNames.xalise.recordId
     );
     

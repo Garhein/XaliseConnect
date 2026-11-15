@@ -30,7 +30,9 @@ export const XalConstants = Object.freeze({
             popoverLabel:                   'data-xal-popover-label',
             popoverValue:                   'data-xal-popover-value',
             popoverValueCssClasses:         'data-xal-popover-value-css-classes',
+            deleteUrl:                      'data-xal-delete-url',
             recordId:                       'data-xal-record-id',
+            recordLabel:                    'data-xal-record-label',
             tableContainerActions :         'data-xal-table-container-actions',
             tableContainerSelectionCount:   'data-xal-table-container-selection-count',
             tablePageSize:                  'data-xal-table-page-size',
@@ -80,6 +82,10 @@ export const XalConstants = Object.freeze({
      * Ces sélecteurs sont utilisés pour rechercher des éléments enfants dans des composants spécifiques.
      */
     cssQueries: Object.freeze({
+        xalise: Object.freeze({
+            record: '[data-xal-record-id]',
+        }),
+
         bootstrap: Object.freeze({
             togglePopover: '[data-bs-toggle="popover"]',
         }),
@@ -210,11 +216,21 @@ export const XalConstants = Object.freeze({
 
         modal: Object.freeze({
             xalHeaderDefault: 'xal-modal__header--default',
+            variant: Object.freeze({
+                success:    'success',
+                danger:     'danger',
+                warning:    'warning',
+                info:       'info',
+            }),
         }),
 
         form: Object.freeze({
             wasValidated:   'was-validated',
             doNotEmpty:     'xal-form-do-not-empty',
+        }),
+
+        text: Object.freeze({
+            justify: 'text-justify',
         }),
     }),
 });

@@ -6,12 +6,10 @@ using XaliseConnect.Application.Pagination;
 namespace XaliseConnect.Application.IntegrationRequest;
 
 /// <summary>
-/// Mock des opérations associées aux demandes d'intégration.
+/// Mock des opérations associées à la lectures des demandes d'intégration.
 /// </summary>
 public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQueryService
 {
-    private static readonly IReadOnlyList<IntegrationRequestListItem> _requestIntegration = Array.AsReadOnly(MockIntegrationRequestQueryService._CreateMockIntegrationRequestList());
-
     /// <inheritdoc />
     public Task<PagedResult<IntegrationRequestListItem>> GetIntegrationRequestListAsync(IntegrationRequestSearchCriteria searchCriteria, CancellationToken cancellationToken)
     {
@@ -19,7 +17,7 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
         ArgumentNullException.ThrowIfNull(searchCriteria.Pagination);
         cancellationToken.ThrowIfCancellationRequested();
 
-        IEnumerable<IntegrationRequestListItem> requests = MockIntegrationRequestQueryService._requestIntegration;
+        IEnumerable<IntegrationRequestListItem> requests = MockIntegrationRequestStore._GetSnapshot();
 
         if (searchCriteria.RequestNumber is string requestNumberFilter && !string.IsNullOrWhiteSpace(requestNumberFilter))
         {
@@ -111,10 +109,10 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
     }
 
     /// <summary>
-    /// Crée les données de démonstration des demandes d'intégration.
+    /// Crée les données initiales de démonstration partagées par les services simulés.
     /// </summary>
-    /// <returns>Collection de 39 demandes aux statuts cohérents et aux identifiants uniques.</returns>
-    private static IntegrationRequestListItem[] _CreateMockIntegrationRequestList()
+    /// <returns>Collection de 39 demandes de démonstration.</returns>
+    internal static IntegrationRequestListItem[] _CreateInitialData()
     {
         List<IntegrationRequestListItem> requests = new List<IntegrationRequestListItem>
         {

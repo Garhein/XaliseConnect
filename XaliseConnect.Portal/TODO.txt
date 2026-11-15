@@ -1,1 +1,7 @@
 ﻿
+
+Historique des statuts : générer un mock pour chaque demande du mock, en fonction des statuts affectés à chaque demande
+Le mock doit contenir les informations suivantes :
+- Date du statut
+- Statut (ex: "En cours", "Terminé", "Annulé", etc.)
+- Commentaire éventuel de l'utilisateur ou du système
