@@ -1,17 +1,17 @@
-namespace XaliseConnect.Application.Pagination;
+﻿namespace XaliseConnect.Application.Pagination;
 
 /// <summary>
-/// Valeurs textuelles normalisées des sens de tri transmis aux requêtes paginées.
+/// Valeurs textuelles normalisées des sens de tri.
 /// </summary>
 public static class PaginationSortDirection
 {
     /// <summary>
-    /// Sens de tri croissant.
+    /// Tri croissant.
     /// </summary>
     public const string CSTS_ASCENDING = "ascending";
 
     /// <summary>
-    /// Sens de tri décroissant.
+    /// Tri décroissant.
     /// </summary>
     public const string CSTS_DESCENDING = "descending";
 }

@@ -1,4 +1,4 @@
-namespace XaliseConnect.Application.Pagination;
+﻿namespace XaliseConnect.Application.Pagination;
 
 /// <summary>
 /// Critères génériques de tri et de pagination.
