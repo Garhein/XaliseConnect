@@ -24,7 +24,7 @@ public static class EnumHelper
 
         if (description is null)
         {
-            throw new InvalidOperationException($"Le membre '{enumValue}' de l'énumération '{typeof(TEnum).Name}' doit avoir un attribut 'Description'.");
+            throw new InvalidOperationException($"Le membre '{enumValue}' de l'énumération '{typeof(TEnum).Name}' ne défini aucun attribut 'Description'.");
         }
 
         return description.Description;

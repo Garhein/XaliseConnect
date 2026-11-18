@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace XaliseConnect.Domain.Entities.Configuration;
 
@@ -25,7 +25,7 @@ public class Source
     public string? Description { get; set; }
 
     /// <summary>
-    /// Date et heure UTC d'archivage, ou <see langword="null"/> si la source est active.
+    /// Date et heure d'archivage, ou <see langword="null"/> si la source est active.
     /// </summary>
     public DateTime? ArchivedAt { get; set; }
 

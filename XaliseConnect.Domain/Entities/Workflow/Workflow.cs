@@ -25,7 +25,7 @@ public class Workflow
     public string? Description { get; set; }
 
     /// <summary>
-    /// Date et heure UTC d'archivage, ou <see langword="null"/> si le workflow est actif.
+    /// Date et heure d'archivage, ou <see langword="null"/> si le workflow est actif.
     /// </summary>
     public DateTime? ArchivedAt { get; set; }
 

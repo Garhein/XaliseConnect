@@ -13,17 +13,18 @@ public class WorkflowInstance
     public int Id { get; set; }
 
     /// <summary>
-    /// Numéro de l'instance de workflow, unique par workflow.
+    /// Numéro unique de l'instance.
     /// </summary>
+    [MaxLength(16)]
     public string InstanceNumber { get; set; } = string.Empty;
 
     /// <summary>
-    /// Date et heure UTC de création de l'instance.
+    /// Date et heure de création de l'instance.
     /// </summary>
     public DateTime CreatedAt { get; set; }
 
     /// <summary>
-    /// Date et heure UTC de réception du dernier événement.
+    /// Date et heure de réception du dernier événement.
     /// </summary>
     public DateTime LastEventReceivedAt { get; set; }
 

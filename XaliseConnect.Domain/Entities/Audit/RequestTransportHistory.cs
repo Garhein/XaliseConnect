@@ -13,7 +13,7 @@ public class RequestTransportHistory
     public int Id { get; set; }
 
     /// <summary>
-    /// Date et heure UTC de création de l'entrée.
+    /// Date et heure de création de l'entrée.
     /// </summary>
     public DateTime CreatedAt { get; set; }
 
