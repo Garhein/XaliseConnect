@@ -71,9 +71,7 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
             requests = requests.Where(req => req.StatusIntegration is null);
         }
 
-        int totalItemCount   = requests.Count();
-        string sortColumn    = searchCriteria.Pagination.SortColumn ?? IntegrationRequestSortColumn.CSTS_RECEIVED_AT;
-        string sortDirection = searchCriteria.Pagination.SortDirection ?? PaginationSortDirection.CSTS_DESCENDING;
+        (string sortColumn, string sortDirection) = this._NormalizeSortCriteria(searchCriteria.Pagination);
 
         IOrderedEnumerable<IntegrationRequestListItem> orderedRequests = (sortColumn, sortDirection) switch
         {
@@ -82,10 +80,12 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
             (IntegrationRequestSortColumn.CSTS_SOURCE, PaginationSortDirection.CSTS_ASCENDING)          => requests.OrderBy(req => req.SourceLabel),
             (IntegrationRequestSortColumn.CSTS_SOURCE, PaginationSortDirection.CSTS_DESCENDING)         => requests.OrderByDescending(req => req.SourceLabel),
             (IntegrationRequestSortColumn.CSTS_RECEIVED_AT, PaginationSortDirection.CSTS_ASCENDING)     => requests.OrderBy(req => req.ReceivedAtUtc),
-            _                                                                                           => requests.OrderByDescending(req => req.ReceivedAtUtc)
+            (IntegrationRequestSortColumn.CSTS_RECEIVED_AT, PaginationSortDirection.CSTS_DESCENDING)    => requests.OrderByDescending(req => req.ReceivedAtUtc),
+            _ => throw new InvalidOperationException("Les critères de tri normalisés ne correspondent à aucune combinaison prise en charge.")
         };
 
-        orderedRequests = orderedRequests.ThenBy(req => req.Id);
+        int totalItemCount  = requests.Count();
+        orderedRequests     = orderedRequests.ThenBy(req => req.Id);
 
         int pageSize        = Math.Max(1, searchCriteria.Pagination.PageSize);
         int totalPageCount  = Math.Max(1, (int)Math.Ceiling(totalItemCount / (double)pageSize));
@@ -106,6 +106,43 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
         );
 
         return Task.FromResult(result);
+    }
+
+    /// <summary>
+    /// Normalise les critères de tri et retourne les clés canoniques qui seront appliquées.
+    /// Si une clé non vide est inconnue, l'ensemble des critères revient au tri par défaut (date de réception décroissante).
+    /// </summary>
+    /// <param name="paginationCriteria">Critères de tri et de pagination à normaliser.</param>
+    /// <returns>Clé de colonne et direction canoniques à appliquer et à retourner dans les métadonnées.</returns>
+    /// <exception cref="ArgumentNullException">Si <paramref name="paginationCriteria"/> est <see langword="null"/>.</exception>
+    private (string SortColumn, string SortDirection) _NormalizeSortCriteria(PaginationCriteria paginationCriteria)
+    {
+        ArgumentNullException.ThrowIfNull(paginationCriteria);
+
+        string? requestedSortColumn     = paginationCriteria.SortColumn;
+        string? requestedSortDirection  = paginationCriteria.SortDirection?.ToLowerInvariant();
+
+        bool isSortColumnSupported = requestedSortColumn is null
+            or IntegrationRequestSortColumn.CSTS_RECEIVED_AT
+            or IntegrationRequestSortColumn.CSTS_REQUEST_NUMBER
+            or IntegrationRequestSortColumn.CSTS_SOURCE;
+
+        bool isSortDirectionSupported = requestedSortDirection is null
+            or PaginationSortDirection.CSTS_ASCENDING
+            or PaginationSortDirection.CSTS_DESCENDING;
+
+        if (!isSortColumnSupported || !isSortDirectionSupported)
+        {
+            return (
+                IntegrationRequestSortColumn.CSTS_RECEIVED_AT,
+                PaginationSortDirection.CSTS_DESCENDING
+            );
+        }
+
+        return (
+            requestedSortColumn ?? IntegrationRequestSortColumn.CSTS_RECEIVED_AT,
+            requestedSortDirection ?? PaginationSortDirection.CSTS_DESCENDING
+        );
     }
 
     /// <summary>
