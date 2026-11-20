@@ -117,8 +117,7 @@
                                            data-xal-table-check-row />
                                 </td>
                                 <td class="text-nowrap">
-                                    <!-- TODO: transformer la date/heure UTC en valeur locale -->
-                                    <time datetime="@req.ReceivedAtUtc.ToString("yyyy-MM-ddTHH:mm:ssZ")">@req.ReceivedAtUtc.ToString("dd/MM/yyyy HH:mm")</time>
+                                    <time datetime="@req.ReceivedAt.ToString("yyyy-MM-ddTHH:mm:ss")">@req.ReceivedAt.ToString("dd/MM/yyyy HH:mm")</time>
                                 </td>
                                 <td>@req.RequestNumber</td>
                                 <td>

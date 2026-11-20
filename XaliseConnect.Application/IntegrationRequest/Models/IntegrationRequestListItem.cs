@@ -3,33 +3,32 @@
 namespace XaliseConnect.Application.IntegrationRequest.Models;
 
 /// <summary>
-/// Représente les données d'une demande d'intégration destinées à l'affichage
-/// de la liste des demandes d'intégration.
+/// Représente les données d'une demande d'intégration destinées à l'affichage de la liste des demandes d'intégration.
 /// </summary>
 public sealed class IntegrationRequestListItem
 {
     /// <summary>
-    /// Identifiant unique de la demande.
+    /// Identifiant unique de la demande d'intégration.
     /// </summary>
     public required int Id { get; init; }
 
     /// <summary>
-    /// Date et heure de réception de la demande.
+    /// Date et heure de réception de la demande d'intégration.
     /// </summary>
-    public required DateTime ReceivedAtUtc { get; init; }
+    public required DateTime ReceivedAt { get; init; }
 
     /// <summary>
-    /// Numéro de la demande.
+    /// Numéro de la demande d'intégration.
     /// </summary>
     public required string RequestNumber { get; init; }
 
     /// <summary>
-    /// Libellé de la source ayant émis la demande.
+    /// Libellé de la source ayant émis la demande d'intégration.
     /// </summary>
     public required string SourceLabel { get; init; }
 
     /// <summary>
-    /// Identifiant de la source ayant émis la demande.
+    /// Identifiant de la source ayant émis la demande d'intégration.
     /// </summary>
     public required int SourceId { get; init; }
 
@@ -39,22 +38,22 @@ public sealed class IntegrationRequestListItem
     public required string SourceTypeLabel { get; init; }
 
     /// <summary>
-    /// Référence de la demande fournie par sa source.
+    /// Référence de la demande d'intégration fournie par sa source.
     /// </summary>
     public string? SourceReference { get; init; }
 
     /// <summary>
-    /// Libellé du workflow associé à la demande.
+    /// Libellé du workflow associé à la demande d'intégration.
     /// </summary>
     public string? WorkflowLabel { get; init; }
 
     /// <summary>
-    /// Règle de corrélation associée à la demande.
+    /// Règle de corrélation associée à la demande d'intégration.
     /// </summary>
     public string? CorrelationRuleLabel { get; init; }
 
     /// <summary>
-    /// Valeur de corrélation associée à la demande.
+    /// Valeur de corrélation associée à la demande d'intégration.
     /// </summary>
     public string? CorrelationRuleValue { get; init; }
 

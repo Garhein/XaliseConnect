@@ -13,8 +13,8 @@ public interface IIntegrationRequestQueryService
     /// </summary>
     /// <param name="searchCriteria">Critères à appliquer à la recherche.</param>
     /// <param name="cancellationToken">Jeton d'annulation de la demande.</param>
-    /// <returns>Les demandes de la page demandée et les métadonnées de pagination.</returns>
-    /// <exception cref="ArgumentNullException">Si <paramref name="searchCriteria"/> est <see langword="null"/>.</exception>
+    /// <returns>Les demandes d'intégration de la page demandée et les métadonnées de pagination.</returns>
+    /// <exception cref="ArgumentNullException">Si <paramref name="searchCriteria"/> ou <paramref name="searchCriteria.Pagination"/> est <see langword="null"/>.</exception>
     /// <exception cref="OperationCanceledException">Si la demande a été annulée.</exception>
     Task<PagedResult<IntegrationRequestListItem>> GetIntegrationRequestListAsync(IntegrationRequestSearchCriteria searchCriteria, CancellationToken cancellationToken);
 }

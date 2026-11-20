@@ -19,52 +19,52 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
 
         IEnumerable<IntegrationRequestListItem> requests = MockIntegrationRequestStore._GetSnapshot();
 
-        if (searchCriteria.RequestNumber is string requestNumberFilter && !string.IsNullOrWhiteSpace(requestNumberFilter))
+        if (!string.IsNullOrWhiteSpace(searchCriteria.RequestNumber))
         {
-            requests = requests.Where(req => req.RequestNumber == requestNumberFilter);
+            requests = requests.Where(req => req.RequestNumber == searchCriteria.RequestNumber);
         }
 
-        if (searchCriteria.ReceivedFromUtc is DateTimeOffset receivedFromUtc)
+        if (searchCriteria.ReceivedFrom.HasValue)
         {
-            requests = requests.Where(req => new DateTimeOffset(DateTime.SpecifyKind(req.ReceivedAtUtc, DateTimeKind.Utc)) >= receivedFromUtc.ToUniversalTime());
+            requests = requests.Where(req => req.ReceivedAt >= searchCriteria.ReceivedFrom.Value);
         }
 
-        if (searchCriteria.ReceivedToUtc is DateTimeOffset receivedToUtc)
+        if (searchCriteria.ReceivedTo.HasValue)
         {
-            requests = requests.Where(req => new DateTimeOffset(DateTime.SpecifyKind(req.ReceivedAtUtc, DateTimeKind.Utc)) <= receivedToUtc.ToUniversalTime());
+            requests = requests.Where(req => req.ReceivedAt <= searchCriteria.ReceivedTo.Value);
         }
 
-        if (searchCriteria.SourceId is int sourceId)
+        if (searchCriteria.SourceId.HasValue)
         {
-            requests = requests.Where(req => req.SourceId == sourceId);
+            requests = requests.Where(req => req.SourceId == searchCriteria.SourceId.Value);
         }
 
-        if (searchCriteria.CorrelationValue is string correlationValueFilter && !string.IsNullOrWhiteSpace(correlationValueFilter))
+        if (!string.IsNullOrWhiteSpace(searchCriteria.CorrelationValue))
         {
-            requests = requests.Where(req => req.CorrelationRuleValue?.Equals(correlationValueFilter) == true);
+            requests = requests.Where(req => req.CorrelationRuleValue?.Equals(searchCriteria.CorrelationValue) == true);
         }
 
-        if (searchCriteria.StatusReception is EnumStatusReception statusReception)
+        if (searchCriteria.StatusReception.HasValue)
         {
-            requests = requests.Where(req => req.StatusReception == statusReception);
+            requests = requests.Where(req => req.StatusReception == searchCriteria.StatusReception.Value);
         }
         else if (searchCriteria.SearchWithoutStatusReception)
         {
             requests = requests.Where(req => req.StatusReception is null);
         }
 
-        if (searchCriteria.StatusTransport is EnumStatusTransport statusTransport)
+        if (searchCriteria.StatusTransport.HasValue)
         {
-            requests = requests.Where(req => req.StatusTransport == statusTransport);
+            requests = requests.Where(req => req.StatusTransport == searchCriteria.StatusTransport.Value);
         }
         else if (searchCriteria.SearchWithoutStatusTransport)
         {
             requests = requests.Where(req => req.StatusTransport is null);
         }
 
-        if (searchCriteria.StatusIntegration is EnumStatusIntegration statusIntegration)
+        if (searchCriteria.StatusIntegration.HasValue)
         {
-            requests = requests.Where(req => req.StatusIntegration == statusIntegration);
+            requests = requests.Where(req => req.StatusIntegration == searchCriteria.StatusIntegration.Value);
         }
         else if (searchCriteria.SearchWithoutStatusIntegration)
         {
@@ -79,8 +79,8 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
             (IntegrationRequestSortColumn.CSTS_REQUEST_NUMBER, PaginationSortDirection.CSTS_DESCENDING) => requests.OrderByDescending(req => req.RequestNumber),
             (IntegrationRequestSortColumn.CSTS_SOURCE, PaginationSortDirection.CSTS_ASCENDING)          => requests.OrderBy(req => req.SourceLabel),
             (IntegrationRequestSortColumn.CSTS_SOURCE, PaginationSortDirection.CSTS_DESCENDING)         => requests.OrderByDescending(req => req.SourceLabel),
-            (IntegrationRequestSortColumn.CSTS_RECEIVED_AT, PaginationSortDirection.CSTS_ASCENDING)     => requests.OrderBy(req => req.ReceivedAtUtc),
-            (IntegrationRequestSortColumn.CSTS_RECEIVED_AT, PaginationSortDirection.CSTS_DESCENDING)    => requests.OrderByDescending(req => req.ReceivedAtUtc),
+            (IntegrationRequestSortColumn.CSTS_RECEIVED_AT, PaginationSortDirection.CSTS_ASCENDING)     => requests.OrderBy(req => req.ReceivedAt),
+            (IntegrationRequestSortColumn.CSTS_RECEIVED_AT, PaginationSortDirection.CSTS_DESCENDING)    => requests.OrderByDescending(req => req.ReceivedAt),
             _ => throw new InvalidOperationException("Les critères de tri normalisés ne correspondent à aucune combinaison prise en charge.")
         };
 
@@ -146,9 +146,9 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
     }
 
     /// <summary>
-    /// Crée les données initiales de démonstration partagées par les services simulés.
+    /// Crée les données initiales de démonstration partagées par les mocks.
     /// </summary>
-    /// <returns>Collection de 39 demandes de démonstration.</returns>
+    /// <returns>Collection de 39 demandes d'intégration de démonstration.</returns>
     internal static IntegrationRequestListItem[] _CreateInitialData()
     {
         List<IntegrationRequestListItem> requests = new List<IntegrationRequestListItem>
@@ -156,7 +156,7 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
             new IntegrationRequestListItem()
             {
                 Id                      = 2026110701,
-                ReceivedAtUtc           = new DateTime(2026, 11, 7, 12, 42, 0, DateTimeKind.Utc),
+                ReceivedAt              = new DateTime(2026, 11, 7, 12, 42, 0),
                 RequestNumber           = "INT-2026110701",
                 SourceLabel             = "Dépôt interne",
                 SourceId                = 1,
@@ -172,7 +172,7 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
             new IntegrationRequestListItem()
             {
                 Id                      = 2026110602,
-                ReceivedAtUtc           = new DateTime(2026, 11, 6, 9, 21, 0, DateTimeKind.Utc),
+                ReceivedAt              = new DateTime(2026, 11, 6, 9, 21, 0),
                 RequestNumber           = "INT-2026110602",
                 SourceLabel             = "Transmission interne",
                 SourceId                = 2,
@@ -190,7 +190,7 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
             new IntegrationRequestListItem()
             {
                 Id                      = 2026110503,
-                ReceivedAtUtc           = new DateTime(2026, 11, 5, 19, 49, 0, DateTimeKind.Utc),
+                ReceivedAt              = new DateTime(2026, 11, 5, 19, 49, 0),
                 RequestNumber           = "INT-2026110503",
                 SourceLabel             = "Transmission externe",
                 SourceId                = 3,
@@ -210,7 +210,7 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
             new IntegrationRequestListItem()
             {
                 Id                      = 2026110404,
-                ReceivedAtUtc           = new DateTime(2026, 11, 4, 8, 15, 0, DateTimeKind.Utc),
+                ReceivedAt              = new DateTime(2026, 11, 4, 8, 15, 0),
                 RequestNumber           = "INT-2026110404",
                 SourceLabel             = "Dépôt interne",
                 SourceId                = 1,
@@ -283,7 +283,7 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
             requests.Add(new IntegrationRequestListItem()
             {
                 Id                      = 2026110000 + requestIndex,
-                ReceivedAtUtc           = new DateTime(2026, 11, 4, 8, 0, 0, DateTimeKind.Utc).AddDays(5 - requestIndex).AddMinutes(requestIndex),
+                ReceivedAt              = new DateTime(2026, 11, 4, 8, 0, 0).AddDays(5 - requestIndex).AddMinutes(requestIndex),
                 RequestNumber           = $"INT-202611-{requestIndex:D4}",
                 SourceLabel             = sourceId switch
                 {

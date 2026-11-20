@@ -128,8 +128,8 @@ public sealed class IntegrationRequestController : Controller
         IntegrationRequestSearchCriteria searchCriteria = new IntegrationRequestSearchCriteria
         {
             RequestNumber                   = searchRequest.RequestNumber,
-            ReceivedFromUtc                 = searchRequest.ReceivedFromUtc,
-            ReceivedToUtc                   = searchRequest.ReceivedToUtc,
+            ReceivedFrom                 = searchRequest.ReceivedFrom,
+            ReceivedTo                   = searchRequest.ReceivedTo,
             SourceId                        = searchRequest.SourceId,
             CorrelationValue                = searchRequest.CorrelationValue,
             StatusReception                 = receptionStatus,
@@ -166,17 +166,17 @@ public sealed class IntegrationRequestController : Controller
     {
         try
         {
-            IntegrationRequestDeletionOutcome deletionOutcome = await this._integrationRequestCommandService.DeleteIntegrationRequestAsync(
+            EnumIntegrationRequestDeletionOutcome deletionOutcome = await this._integrationRequestCommandService.DeleteIntegrationRequestAsync(
                 recordId,
                 cancellationToken
             );
 
             int statusCode = deletionOutcome switch
             {
-                IntegrationRequestDeletionOutcome.Deleted => StatusCodes.Status200OK,
-                IntegrationRequestDeletionOutcome.NotFound => StatusCodes.Status404NotFound,
-                IntegrationRequestDeletionOutcome.ServiceUnavailable => StatusCodes.Status503ServiceUnavailable,
-                IntegrationRequestDeletionOutcome.PersistenceFailure or IntegrationRequestDeletionOutcome.UnexpectedFailure => StatusCodes.Status500InternalServerError,
+                EnumIntegrationRequestDeletionOutcome.Deleted => StatusCodes.Status200OK,
+                EnumIntegrationRequestDeletionOutcome.NotFound => StatusCodes.Status404NotFound,
+                EnumIntegrationRequestDeletionOutcome.ServiceUnavailable => StatusCodes.Status503ServiceUnavailable,
+                EnumIntegrationRequestDeletionOutcome.PersistenceFailure or EnumIntegrationRequestDeletionOutcome.UnexpectedFailure => StatusCodes.Status500InternalServerError,
                 _ => StatusCodes.Status500InternalServerError
             };
 
@@ -195,7 +195,7 @@ public sealed class IntegrationRequestController : Controller
 
             return this.StatusCode(StatusCodes.Status500InternalServerError, new
             {
-                message = IntegrationRequestDeletionOutcome.UnexpectedFailure.GetDescription()
+                message = EnumIntegrationRequestDeletionOutcome.UnexpectedFailure.GetDescription()
             });
         }
     }
@@ -242,7 +242,7 @@ public sealed class IntegrationRequestController : Controller
                     ? selectedRequestNumber
                     : deletionResult.RecordId.ToString();
 
-                if (deletionResult.Outcome == IntegrationRequestDeletionOutcome.Deleted)
+                if (deletionResult.Outcome == EnumIntegrationRequestDeletionOutcome.Deleted)
                 {
                     deletedRequestNumbers.Add(requestNumber);
                 }
@@ -275,7 +275,7 @@ public sealed class IntegrationRequestController : Controller
 
             return this.StatusCode(StatusCodes.Status500InternalServerError, new
             {
-                message = IntegrationRequestDeletionOutcome.UnexpectedFailure.GetDescription()
+                message = EnumIntegrationRequestDeletionOutcome.UnexpectedFailure.GetDescription()
             });
         }
     }

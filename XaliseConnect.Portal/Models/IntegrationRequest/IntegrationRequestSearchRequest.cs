@@ -1,4 +1,4 @@
-namespace XaliseConnect.Portal.Models.IntegrationRequest;
+﻿namespace XaliseConnect.Portal.Models.IntegrationRequest;
 
 /// <summary>
 /// Paramètres de la requête HTTP de recherche des demandes d'intégration.
@@ -13,12 +13,12 @@ public sealed class IntegrationRequestSearchRequest
     /// <summary>
     /// Date et heure UTC minimales de réception.
     /// </summary>
-    public DateTimeOffset? ReceivedFromUtc { get; set; }
+    public DateTime? ReceivedFrom { get; set; }
 
     /// <summary>
     /// Date et heure UTC maximales de réception.
     /// </summary>
-    public DateTimeOffset? ReceivedToUtc { get; set; }
+    public DateTime? ReceivedTo { get; set; }
 
     /// <summary>
     /// Identifiant de la source recherchée.

@@ -1,7 +1,5 @@
-﻿using XaliseConnect.Domain.Enums;
-
-using XaliseConnect.Application.Pagination;
-using XaliseConnect.Application.IntegrationRequest;
+﻿using XaliseConnect.Application.Pagination;
+using XaliseConnect.Domain.Enums;
 
 namespace XaliseConnect.Application.IntegrationRequest.Models;
 
@@ -20,19 +18,19 @@ public sealed class IntegrationRequestSearchCriteria
     };
 
     /// <summary>
-    /// Numéro de demande.
+    /// Numéro de la demande d'intégration.
     /// </summary>
     public string? RequestNumber { get; init; }
 
     /// <summary>
-    /// Date et heure UTC minimales de réception.
+    /// Date et heure minimales de réception.
     /// </summary>
-    public DateTimeOffset? ReceivedFromUtc { get; init; }
+    public DateTime? ReceivedFrom { get; init; }
 
     /// <summary>
-    /// Date et heure UTC maximales de réception.
+    /// Date et heure maximales de réception.
     /// </summary>
-    public DateTimeOffset? ReceivedToUtc { get; init; }
+    public DateTime? ReceivedTo { get; init; }
 
     /// <summary>
     /// Identifiant de la source.
@@ -50,7 +48,7 @@ public sealed class IntegrationRequestSearchCriteria
     public EnumStatusReception? StatusReception { get; init; }
 
     /// <summary>
-    /// Indique si la recherche porte sur les demandes sans statut de réception.
+    /// <see langword="true"/> si la recherche porte sur les demandes sans statut de réception, sinon <see langword="false"/>.
     /// </summary>
     public bool SearchWithoutStatusReception { get; init; }
 
@@ -60,7 +58,7 @@ public sealed class IntegrationRequestSearchCriteria
     public EnumStatusTransport? StatusTransport { get; init; }
 
     /// <summary>
-    /// Indique si la recherche porte sur les demandes sans statut de transport.
+    /// <see langword="true"/> si la recherche porte sur les demandes sans statut de transport, sinon <see langword="false"/>.
     /// </summary>
     public bool SearchWithoutStatusTransport { get; init; }
 
@@ -70,7 +68,7 @@ public sealed class IntegrationRequestSearchCriteria
     public EnumStatusIntegration? StatusIntegration { get; init; }
 
     /// <summary>
-    /// Indique si la recherche porte sur les demandes sans statut d'intégration.
+    /// <see langword="true"/> si la recherche porte sur les demandes sans statut d'intégration, sinon <see langword="false"/>.
     /// </summary>
     public bool SearchWithoutStatusIntegration { get; init; }
 }

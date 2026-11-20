@@ -4,7 +4,8 @@ using XaliseConnect.Application.IntegrationRequest.Models;
 namespace XaliseConnect.Application.IntegrationRequest;
 
 /// <summary>
-/// Stockage en mémoire partagé par les mocks associés aux demandes d'intégration.
+/// Stockage en mémoire partagé des données de démonstration utilisées par les mocks
+/// associés aux demandes d'intégration.
 /// </summary>
 internal static class MockIntegrationRequestStore
 {
@@ -13,9 +14,9 @@ internal static class MockIntegrationRequestStore
     private static readonly List<IntegrationRequestListItem> _requests = new List<IntegrationRequestListItem>(MockIntegrationRequestQueryService._CreateInitialData());
 
     /// <summary>
-    /// Récupère une copie des demandes actuellement stockées.
+    /// Récupère une copie des demandes d'intégration actuellement stockées.
     /// </summary>
-    /// <returns>Copie des demandes disponibles.</returns>
+    /// <returns>Une copie des demandes d'intégration disponibles.</returns>
     internal static IReadOnlyList<IntegrationRequestListItem> _GetSnapshot()
     {
         lock (MockIntegrationRequestStore._syncRoot)
@@ -25,15 +26,15 @@ internal static class MockIntegrationRequestStore
     }
 
     /// <summary>
-    /// Supprime une demande du stockage simulé.
+    /// Supprime une demande d'intégration du stockage.
     /// </summary>
-    /// <param name="recordId">Identifiant de la demande à supprimer.</param>
-    /// <returns><see langword="true"/> si une demande a été supprimée, sinon <see langword="false"/>.</returns>
-    internal static bool _TryRemove(int recordId)
+    /// <param name="requestId">Identifiant de la demande d'intégration à supprimer.</param>
+    /// <returns><see langword="true"/> si la demande d'intégration a été supprimée, sinon <see langword="false"/>.</returns>
+    internal static bool _TryRemove(int requestId)
     {
         lock (MockIntegrationRequestStore._syncRoot)
         {
-            int requestIndex = MockIntegrationRequestStore._requests.FindIndex(request => request.Id == recordId);
+            int requestIndex = MockIntegrationRequestStore._requests.FindIndex(request => request.Id == requestId);
 
             if (requestIndex < 0)
             {
@@ -45,32 +46,32 @@ internal static class MockIntegrationRequestStore
             return true;
         }
     }
-
+    
     /// <summary>
-    /// Supprime plusieurs demandes et conserve un résultat pour chaque identifiant distinct.
+    /// Supprime plusieurs demandes d'intégration et conserve un résultat pour chaque identifiant distinct.
     /// </summary>
-    /// <param name="recordIds">Identifiants des demandes à supprimer.</param>
+    /// <param name="requestIds">Identifiants des demandes d'intégration à supprimer.</param>
     /// <returns>Résultats correspondant aux identifiants traités.</returns>
-    internal static IReadOnlyList<IntegrationRequestDeletionItemResult> _TryRemoveMany(IReadOnlyCollection<int> recordIds)
+    internal static IReadOnlyList<IntegrationRequestDeletionItemResult> _TryRemoveMany(IReadOnlyCollection<int> requestIds)
     {
         lock (MockIntegrationRequestStore._syncRoot)
         {
             List<IntegrationRequestDeletionItemResult> results = new List<IntegrationRequestDeletionItemResult>();
 
-            foreach (int recordId in recordIds.Distinct())
+            foreach (int requestId in requestIds.Distinct())
             {
-                int requestIndex = MockIntegrationRequestStore._requests.FindIndex(request => request.Id == recordId);
+                int requestIndex = MockIntegrationRequestStore._requests.FindIndex(request => request.Id == requestId);
 
-                IntegrationRequestDeletionOutcome outcome = requestIndex < 0
-                    ? IntegrationRequestDeletionOutcome.NotFound
-                    : IntegrationRequestDeletionOutcome.Deleted;
+                EnumIntegrationRequestDeletionOutcome outcome = requestIndex < 0
+                    ? EnumIntegrationRequestDeletionOutcome.NotFound
+                    : EnumIntegrationRequestDeletionOutcome.Deleted;
 
                 if (requestIndex >= 0)
                 {
                     MockIntegrationRequestStore._requests.RemoveAt(requestIndex);
                 }
 
-                results.Add(new IntegrationRequestDeletionItemResult(recordId, outcome));
+                results.Add(new IntegrationRequestDeletionItemResult(requestId, outcome));
             }
 
             return results;

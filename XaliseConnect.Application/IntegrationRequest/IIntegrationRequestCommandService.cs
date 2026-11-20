@@ -11,19 +11,19 @@ public interface IIntegrationRequestCommandService
     /// <summary>
     /// Supprime une demande d'intégration.
     /// </summary>
-    /// <param name="recordId">Identifiant de la demande à supprimer.</param>
+    /// <param name="requestId">Identifiant de la demande d'intégration à supprimer.</param>
     /// <param name="cancellationToken">Jeton d'annulation de la demande.</param>
-    /// <returns>Résultat indiquant si la demande a été supprimée, est introuvable ou si une erreur est survenue.</returns>
+    /// <returns>Résultat indiquant si la demande d'intégration a été supprimée, est introuvable ou si une erreur est survenue.</returns>
     /// <exception cref="OperationCanceledException">Si l'opération a été annulée.</exception>
-    Task<IntegrationRequestDeletionOutcome> DeleteIntegrationRequestAsync(int recordId, CancellationToken cancellationToken);
+    Task<EnumIntegrationRequestDeletionOutcome> DeleteIntegrationRequestAsync(int requestId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Supprime plusieurs demandes d'intégration.
     /// </summary>
-    /// <param name="recordIds">Identifiants des demandes à supprimer.</param>
+    /// <param name="requestIds">Identifiants des demandes d'intégration à supprimer.</param>
     /// <param name="cancellationToken">Jeton d'annulation de la demande.</param>
     /// <returns>Résultat de suppression associé à chaque identifiant distinct fourni.</returns>
-    /// <exception cref="ArgumentNullException">Si <paramref name="recordIds"/> est <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException">Si <paramref name="requestIds"/> est <see langword="null"/>.</exception>
     /// <exception cref="OperationCanceledException">Si l'opération a été annulée.</exception>
-    Task<IReadOnlyList<IntegrationRequestDeletionItemResult>> DeleteIntegrationRequestsAsync(IReadOnlyCollection<int> recordIds, CancellationToken cancellationToken);
+    Task<IReadOnlyList<IntegrationRequestDeletionItemResult>> DeleteIntegrationRequestsAsync(IReadOnlyCollection<int> requestIds, CancellationToken cancellationToken);
 }

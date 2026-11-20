@@ -5,16 +5,16 @@ namespace XaliseConnect.Application.IntegrationRequest.Enums;
 /// <summary>
 /// Résultat possible de la suppression d'une demande d'intégration.
 /// </summary>
-public enum IntegrationRequestDeletionOutcome
+public enum EnumIntegrationRequestDeletionOutcome
 {
     /// <summary>
-    /// Demande supprimée avec succès.
+    /// Demande d'intégration supprimée avec succès.
     /// </summary>
     [Description("La demande d'intégration a été supprimée avec succès.")]
     Deleted,
 
     /// <summary>
-    /// Demande introuvable.
+    /// Demande d'intégration introuvable.
     /// </summary>
     [Description("La demande d'intégration n'existe plus ou a déjà été supprimée.")]
     NotFound,
@@ -22,7 +22,7 @@ public enum IntegrationRequestDeletionOutcome
     /// <summary>
     /// Échec de la suppression dans le stockage.
     /// </summary>
-    [Description("La demande existe, mais une erreur de stockage a empêché sa suppression.")]
+    [Description("La demande d'intégration existe, mais une erreur de stockage a empêché sa suppression.")]
     PersistenceFailure,
 
     /// <summary>

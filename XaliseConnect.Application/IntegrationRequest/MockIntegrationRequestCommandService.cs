@@ -9,24 +9,24 @@ namespace XaliseConnect.Application.IntegrationRequest;
 public sealed class MockIntegrationRequestCommandService : IIntegrationRequestCommandService
 {
     /// <inheritdoc />
-    public Task<IntegrationRequestDeletionOutcome> DeleteIntegrationRequestAsync(int recordId, CancellationToken cancellationToken)
+    public Task<EnumIntegrationRequestDeletionOutcome> DeleteIntegrationRequestAsync(int requestId, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        IntegrationRequestDeletionOutcome result = MockIntegrationRequestStore._TryRemove(recordId)
-            ? IntegrationRequestDeletionOutcome.Deleted
-            : IntegrationRequestDeletionOutcome.NotFound;
+        EnumIntegrationRequestDeletionOutcome result = MockIntegrationRequestStore._TryRemove(requestId)
+            ? EnumIntegrationRequestDeletionOutcome.Deleted
+            : EnumIntegrationRequestDeletionOutcome.NotFound;
 
         return Task.FromResult(result);
     }
 
     /// <inheritdoc />
-    public Task<IReadOnlyList<IntegrationRequestDeletionItemResult>> DeleteIntegrationRequestsAsync(IReadOnlyCollection<int> recordIds, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<IntegrationRequestDeletionItemResult>> DeleteIntegrationRequestsAsync(IReadOnlyCollection<int> requestIds, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(recordIds);
+        ArgumentNullException.ThrowIfNull(requestIds);
         cancellationToken.ThrowIfCancellationRequested();
 
-        IReadOnlyList<IntegrationRequestDeletionItemResult> results = MockIntegrationRequestStore._TryRemoveMany(recordIds);
+        IReadOnlyList<IntegrationRequestDeletionItemResult> results = MockIntegrationRequestStore._TryRemoveMany(requestIds);
 
         return Task.FromResult(results);
     }

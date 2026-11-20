@@ -1,5 +1,8 @@
 ﻿
 
+XaliseConnect.Application :
+ - énumération : préfixer le nom avec "Enum", comme dans le domaine
+
 
 
 Historique des statuts : générer un mock pour chaque demande du mock, en fonction des statuts affectés à chaque demande
