@@ -18,7 +18,6 @@ namespace XaliseConnect.Portal.Controllers;
 [Route("demande-integration")]
 public sealed class IntegrationRequestController : Controller
 {
-    private const int CSTN_DEFAULT_PAGE_SIZE        = 10;
     private const string CSTS_TABLE_SELECTOR        = "#xal-id-table-integration-request";
     private const string CSTS_PAGE_SIZE_SELECT_ID   = "xal-id-page-size";
     private const string CSTS_PAGE_SELECT_ID        = "xal-id-pagination-jump";
@@ -67,7 +66,7 @@ public sealed class IntegrationRequestController : Controller
             Pagination = new PaginationCriteria
             {
                 PageNumber      = 1,
-                PageSize        = IntegrationRequestController.CSTN_DEFAULT_PAGE_SIZE,
+                PageSize        = PaginationPolicy.CSTN_DEFAULT_PAGE_SIZE,
                 SortColumn      = IntegrationRequestSortColumn.CSTS_RECEIVED_AT,
                 SortDirection   = PaginationSortDirection.CSTS_DESCENDING
             }
@@ -303,14 +302,10 @@ public sealed class IntegrationRequestController : Controller
             _ => PaginationSortDirection.CSTS_DESCENDING
         };
 
-        int normalizedPageSize = pageSize is 10 or 25 or 50
-            ? pageSize
-            : IntegrationRequestController.CSTN_DEFAULT_PAGE_SIZE;
-
         return new PaginationCriteria
         {
             PageNumber      = Math.Max(1, pageNumber),
-            PageSize        = normalizedPageSize,
+            PageSize        = pageSize,
             SortColumn      = normalizedSortColumn,
             SortDirection   = normalizedSortDirection
         };
@@ -339,7 +334,7 @@ public sealed class IntegrationRequestController : Controller
             PageSelectId        = IntegrationRequestController.CSTS_PAGE_SELECT_ID,
             ItemLabel           = IntegrationRequestController.CSTS_PAGE_ITEM_LABEL,
             NavigationLabel     = IntegrationRequestController.CSTS_PAGINATION_LABEL,
-            PageSizeOptions     = new int[] { 10, 25, 50 }
+            PageSizeOptions     = PaginationPolicy.PageSizeOptions
         };
 
         return new IntegrationRequestResultsViewModel(page, paginationViewModel);

@@ -46,12 +46,12 @@ public sealed class PagedResult<TItem>
     /// </summary>
     /// <param name="items">Éléments de la page courante.</param>
     /// <param name="pageNumber">Numéro de la page courante borné entre 1 et le nombre total de pages.</param>
-    /// <param name="pageSize">Nombre maximal d'éléments par page.</param>
+    /// <param name="pageSize">Nombre d'éléments par page, normalisé selon la politique commune de pagination.</param>
     /// <param name="totalItemCount">Nombre total d'éléments correspondant aux critères.</param>
     /// <param name="sortColumn">Colonne de tri appliquée.</param>
     /// <param name="sortDirection">Sens de tri appliqué.</param>
     /// <exception cref="ArgumentNullException">Si <paramref name="items"/> est <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Si la taille de page est inférieure à 1, ou si le nombre total d'éléments est négatif.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Si le nombre total d'éléments est négatif.</exception>
     public PagedResult(
         IReadOnlyList<TItem> items,
         int pageNumber,
@@ -61,14 +61,14 @@ public sealed class PagedResult<TItem>
         string? sortDirection)
     {
         ArgumentNullException.ThrowIfNull(items);
-        ArgumentOutOfRangeException.ThrowIfLessThan(pageSize, 1);
         ArgumentOutOfRangeException.ThrowIfNegative(totalItemCount);
 
-        int totalPageCount = Math.Max(1, (int)Math.Ceiling(totalItemCount / (double)pageSize));
+        int normalizedPageSize  = PaginationPolicy.NormalizePageSize(pageSize);
+        int totalPageCount      = Math.Max(1, (int)Math.Ceiling(totalItemCount / (double)normalizedPageSize));
 
         this.Items          = items;
         this.PageNumber     = Math.Clamp(pageNumber, 1, totalPageCount);
-        this.PageSize       = pageSize;
+        this.PageSize       = normalizedPageSize;
         this.TotalItemCount = totalItemCount;
         this.TotalPageCount = totalPageCount;
         this.SortColumn     = sortColumn;

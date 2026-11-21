@@ -5,15 +5,21 @@
 /// </summary>
 public sealed class PaginationCriteria
 {
+    private int _pageSize = PaginationPolicy.CSTN_DEFAULT_PAGE_SIZE;
+
     /// <summary>
     /// Numéro de la page demandée, à partir de 1.
     /// </summary>
     public int PageNumber { get; init; } = 1;
 
     /// <summary>
-    /// Nombre maximal d'éléments affichés sur une page.
+    /// Nombre d'éléments affichés sur une page, normalisé selon la politique commune de pagination.
     /// </summary>
-    public int PageSize { get; init; } = 10;
+    public int PageSize
+    {
+        get => this._pageSize;
+        init => this._pageSize = PaginationPolicy.NormalizePageSize(value);
+    }
 
     /// <summary>
     /// Clé de la colonne de tri, ou <see langword="null"/> si aucun tri n'est demandé.

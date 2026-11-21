@@ -1,3 +1,5 @@
+using XaliseConnect.Application.Pagination;
+
 namespace XaliseConnect.Portal.Models.Pagination;
 
 /// <summary>
@@ -13,7 +15,7 @@ public sealed class PaginationViewModel
     /// <summary>
     /// Nombre d'éléments affichés par page.
     /// </summary>
-    public int PageSize { get; init; } = 10;
+    public int PageSize { get; init; } = PaginationPolicy.CSTN_DEFAULT_PAGE_SIZE;
 
     /// <summary>
     /// Nombre total d'éléments correspondant aux critères.
@@ -63,5 +65,5 @@ public sealed class PaginationViewModel
     /// <summary>
     /// Tailles de page proposées à l'utilisateur.
     /// </summary>
-    public IReadOnlyList<int> PageSizeOptions { get; init; } = new int[] { 10, 25, 50 };
+    public IReadOnlyList<int> PageSizeOptions { get; init; } = PaginationPolicy.PageSizeOptions;
 }

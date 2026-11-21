@@ -12,7 +12,7 @@
       role="search"
       aria-label="Recherche des demandes d'intégration">
     <input type="hidden" name="page" value="1">
-    <input type="hidden" name="pageSize" value="10">
+    <input type="hidden" name="pageSize" value="@PaginationPolicy.CSTN_DEFAULT_PAGE_SIZE">
     <input type="hidden" name="sort" value="@IntegrationRequestSortColumn.CSTS_RECEIVED_AT">
     <input type="hidden" name="direction" value="@PaginationSortDirection.CSTS_DESCENDING">
     <div class="card-body">

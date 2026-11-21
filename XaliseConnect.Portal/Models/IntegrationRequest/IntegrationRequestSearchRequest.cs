@@ -1,4 +1,6 @@
-﻿namespace XaliseConnect.Portal.Models.IntegrationRequest;
+using XaliseConnect.Application.Pagination;
+
+namespace XaliseConnect.Portal.Models.IntegrationRequest;
 
 /// <summary>
 /// Paramètres de la requête HTTP de recherche des demandes d'intégration.
@@ -11,12 +13,12 @@ public sealed class IntegrationRequestSearchRequest
     public string? RequestNumber { get; set; }
 
     /// <summary>
-    /// Date et heure UTC minimales de réception.
+    /// Date et heure minimales de réception.
     /// </summary>
     public DateTime? ReceivedFrom { get; set; }
 
     /// <summary>
-    /// Date et heure UTC maximales de réception.
+    /// Date et heure maximales de réception.
     /// </summary>
     public DateTime? ReceivedTo { get; set; }
 
@@ -53,7 +55,7 @@ public sealed class IntegrationRequestSearchRequest
     /// <summary>
     /// Nombre maximal de demandes à afficher par page.
     /// </summary>
-    public int PageSize { get; set; } = 10;
+    public int PageSize { get; set; } = PaginationPolicy.CSTN_DEFAULT_PAGE_SIZE;
 
     /// <summary>
     /// Colonne de tri demandée.

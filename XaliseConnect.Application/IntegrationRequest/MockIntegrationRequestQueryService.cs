@@ -87,7 +87,7 @@ public sealed class MockIntegrationRequestQueryService : IIntegrationRequestQuer
         int totalItemCount  = requests.Count();
         orderedRequests     = orderedRequests.ThenBy(req => req.Id);
 
-        int pageSize        = Math.Max(1, searchCriteria.Pagination.PageSize);
+        int pageSize        = searchCriteria.Pagination.PageSize;
         int totalPageCount  = Math.Max(1, (int)Math.Ceiling(totalItemCount / (double)pageSize));
         int pageNumber      = Math.Clamp(searchCriteria.Pagination.PageNumber, 1, totalPageCount);
 
