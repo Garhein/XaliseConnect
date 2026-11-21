@@ -15,14 +15,14 @@ public sealed class IntegrationRequestDeletionItemResult
     /// <summary>
     /// Résultat de la suppression de la demande d'intégration.
     /// </summary>
-    public EnumIntegrationRequestDeletionOutcome Outcome { get; }
+    public EnumIntegrationRequestDeletionResult Outcome { get; }
 
     /// <summary>
     /// Initialise le résultat de suppression d'une demande d'intégration.
     /// </summary>
     /// <param name="recordId">Identifiant de la demande d'intégration traitée.</param>
     /// <param name="outcome">Résultat de la suppression.</param>
-    public IntegrationRequestDeletionItemResult(int recordId, EnumIntegrationRequestDeletionOutcome outcome)
+    public IntegrationRequestDeletionItemResult(int recordId, EnumIntegrationRequestDeletionResult outcome)
     {
         this.RecordId = recordId;
         this.Outcome  = outcome;

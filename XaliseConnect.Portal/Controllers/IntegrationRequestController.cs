@@ -166,17 +166,17 @@ public sealed class IntegrationRequestController : Controller
     {
         try
         {
-            EnumIntegrationRequestDeletionOutcome deletionOutcome = await this._integrationRequestCommandService.DeleteIntegrationRequestAsync(
+            EnumIntegrationRequestDeletionResult deletionOutcome = await this._integrationRequestCommandService.DeleteIntegrationRequestAsync(
                 recordId,
                 cancellationToken
             );
 
             int statusCode = deletionOutcome switch
             {
-                EnumIntegrationRequestDeletionOutcome.Deleted => StatusCodes.Status200OK,
-                EnumIntegrationRequestDeletionOutcome.NotFound => StatusCodes.Status404NotFound,
-                EnumIntegrationRequestDeletionOutcome.ServiceUnavailable => StatusCodes.Status503ServiceUnavailable,
-                EnumIntegrationRequestDeletionOutcome.PersistenceFailure or EnumIntegrationRequestDeletionOutcome.UnexpectedFailure => StatusCodes.Status500InternalServerError,
+                EnumIntegrationRequestDeletionResult.Deleted => StatusCodes.Status200OK,
+                EnumIntegrationRequestDeletionResult.NotFound => StatusCodes.Status404NotFound,
+                EnumIntegrationRequestDeletionResult.ServiceUnavailable => StatusCodes.Status503ServiceUnavailable,
+                EnumIntegrationRequestDeletionResult.PersistenceFailure or EnumIntegrationRequestDeletionResult.UnexpectedFailure => StatusCodes.Status500InternalServerError,
                 _ => StatusCodes.Status500InternalServerError
             };
 
@@ -195,7 +195,7 @@ public sealed class IntegrationRequestController : Controller
 
             return this.StatusCode(StatusCodes.Status500InternalServerError, new
             {
-                message = EnumIntegrationRequestDeletionOutcome.UnexpectedFailure.GetDescription()
+                message = EnumIntegrationRequestDeletionResult.UnexpectedFailure.GetDescription()
             });
         }
     }
@@ -242,7 +242,7 @@ public sealed class IntegrationRequestController : Controller
                     ? selectedRequestNumber
                     : deletionResult.RecordId.ToString();
 
-                if (deletionResult.Outcome == EnumIntegrationRequestDeletionOutcome.Deleted)
+                if (deletionResult.Outcome == EnumIntegrationRequestDeletionResult.Deleted)
                 {
                     deletedRequestNumbers.Add(requestNumber);
                 }
@@ -275,7 +275,7 @@ public sealed class IntegrationRequestController : Controller
 
             return this.StatusCode(StatusCodes.Status500InternalServerError, new
             {
-                message = EnumIntegrationRequestDeletionOutcome.UnexpectedFailure.GetDescription()
+                message = EnumIntegrationRequestDeletionResult.UnexpectedFailure.GetDescription()
             });
         }
     }

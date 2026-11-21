@@ -9,13 +9,13 @@ namespace XaliseConnect.Application.IntegrationRequest;
 public sealed class MockIntegrationRequestCommandService : IIntegrationRequestCommandService
 {
     /// <inheritdoc />
-    public Task<EnumIntegrationRequestDeletionOutcome> DeleteIntegrationRequestAsync(int requestId, CancellationToken cancellationToken)
+    public Task<EnumIntegrationRequestDeletionResult> DeleteIntegrationRequestAsync(int requestId, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        EnumIntegrationRequestDeletionOutcome result = MockIntegrationRequestStore._TryRemove(requestId)
-            ? EnumIntegrationRequestDeletionOutcome.Deleted
-            : EnumIntegrationRequestDeletionOutcome.NotFound;
+        EnumIntegrationRequestDeletionResult result = MockIntegrationRequestStore._TryRemove(requestId)
+            ? EnumIntegrationRequestDeletionResult.Deleted
+            : EnumIntegrationRequestDeletionResult.NotFound;
 
         return Task.FromResult(result);
     }

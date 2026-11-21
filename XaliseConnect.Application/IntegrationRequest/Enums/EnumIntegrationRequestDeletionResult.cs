@@ -5,7 +5,7 @@ namespace XaliseConnect.Application.IntegrationRequest.Enums;
 /// <summary>
 /// Résultat possible de la suppression d'une demande d'intégration.
 /// </summary>
-public enum EnumIntegrationRequestDeletionOutcome
+public enum EnumIntegrationRequestDeletionResult
 {
     /// <summary>
     /// Demande d'intégration supprimée avec succès.

@@ -15,7 +15,7 @@ public interface IIntegrationRequestCommandService
     /// <param name="cancellationToken">Jeton d'annulation de la demande.</param>
     /// <returns>Résultat indiquant si la demande d'intégration a été supprimée, est introuvable ou si une erreur est survenue.</returns>
     /// <exception cref="OperationCanceledException">Si l'opération a été annulée.</exception>
-    Task<EnumIntegrationRequestDeletionOutcome> DeleteIntegrationRequestAsync(int requestId, CancellationToken cancellationToken);
+    Task<EnumIntegrationRequestDeletionResult> DeleteIntegrationRequestAsync(int requestId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Supprime plusieurs demandes d'intégration.

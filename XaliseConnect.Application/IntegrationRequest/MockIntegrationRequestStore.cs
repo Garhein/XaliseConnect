@@ -62,9 +62,9 @@ internal static class MockIntegrationRequestStore
             {
                 int requestIndex = MockIntegrationRequestStore._requests.FindIndex(request => request.Id == requestId);
 
-                EnumIntegrationRequestDeletionOutcome outcome = requestIndex < 0
-                    ? EnumIntegrationRequestDeletionOutcome.NotFound
-                    : EnumIntegrationRequestDeletionOutcome.Deleted;
+                EnumIntegrationRequestDeletionResult outcome = requestIndex < 0
+                    ? EnumIntegrationRequestDeletionResult.NotFound
+                    : EnumIntegrationRequestDeletionResult.Deleted;
 
                 if (requestIndex >= 0)
                 {
