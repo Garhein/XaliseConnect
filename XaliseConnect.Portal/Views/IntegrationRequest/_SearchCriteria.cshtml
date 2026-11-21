@@ -32,19 +32,41 @@
                 <div class="row gy-2 gx-3">
                     <div class="col-12 col-sm-6">
                         <label for="search-date-start" class="form-label">Reçue à partir du</label>
-                        <input name="receivedFrom" id="search-date-start" type="datetime-local" class="form-control form-control-sm">
+                        <div class="input-group input-group-sm has-validation">
+                            <input name="receivedFrom"
+                                   id="search-date-start"
+                                   type="datetime-local"
+                                   class="form-control form-control-sm rounded-end-0">
+
+                            <button type="button"
+                                    class="btn btn-secondary xal-input-clear rounded-start-0"
+                                    aria-label="Effacer"
+                                    title="Effacer">
+                                <i class="bi bi-eraser" aria-hidden="true"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="col-12 col-sm-6">
                         <label for="search-date-end" class="form-label">Reçue jusqu'au</label>
-                        <input name="receivedTo"
-                               id="search-date-end"
-                               type="datetime-local"
-                               class="form-control form-control-sm"
-                               data-xal-range-start="#search-date-start"
-                               data-xal-range-message="La date de fin doit être supérieure ou égale à la date de début."
-                               aria-describedby="search-date-end-range-feedback">
-                        <div id="search-date-end-range-feedback" class="invalid-feedback text-justify">
-                            La date de fin doit être supérieure ou égale à la date de début.
+                        <div class="input-group input-group-sm has-validation">
+                            <input name="receivedTo"
+                                   id="search-date-end"
+                                   type="datetime-local"
+                                   class="form-control form-control-sm rounded-end-0"
+                                   data-xal-range-start="#search-date-start"
+                                   data-xal-range-message="La date de fin doit être supérieure ou égale à la date de début."
+                                   aria-describedby="search-date-end-range-feedback">
+
+                            <button type="button"
+                                    class="btn btn-secondary xal-input-clear rounded-start-0"
+                                    aria-label="Effacer"
+                                    title="Effacer">
+                                <i class="bi bi-eraser" aria-hidden="true"></i>
+                            </button>
+
+                            <div id="search-date-end-range-feedback" class="invalid-feedback text-justify">
+                                La date de fin doit être supérieure ou égale à la date de début.
+                            </div>
                         </div>
                     </div>
                 </div>

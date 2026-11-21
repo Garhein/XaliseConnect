@@ -117,6 +117,7 @@ export const XalConstants = Object.freeze({
             rangeEndField:      '[data-xal-range-start]',
             staticTarget:       'form[data-xal-target]',
             xalClearCriteria:   '[data-xal-form-clear-criteria]',
+            xalClearInput:      '.xal-input-clear',
         }),
 
         otpDigits: '.xal-otp-form__digit',

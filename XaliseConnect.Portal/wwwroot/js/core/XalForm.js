@@ -1,4 +1,4 @@
-import { XalConstants } from './XalConstants.js';
+﻿import { XalConstants } from './XalConstants.js';
 
 /**
  * Vide les champs modifiables d'un formulaire de recherche.
@@ -81,6 +81,35 @@ export function clearFormFields(form) {
 }
 
 /**
+ * Vide le champ `<input>` immédiatement placé avant le bouton d'effacement.
+ * Les événements `input` et `change` sont déclenchés pour actualiser les comportements associés.
+ *
+ * @param   {MouseEvent} event Événement de clic sur le bouton d'effacement.
+ * @returns {void}
+ */
+export function clearInput(event) {
+    if (!(event.target instanceof Element)) {
+        return;
+    }
+
+    const clearButton = event.target.closest(XalConstants.cssQueries.form.xalClearInput);
+
+    if (!(clearButton instanceof HTMLButtonElement)) {
+        return;
+    }
+
+    const input = clearButton.previousElementSibling;
+
+    if (!(input instanceof HTMLInputElement)) {
+        return;
+    }
+
+    input.value = '';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+/**
  * Initialise les boutons qui vident les critères des formulaires de recherche.
  * 
  * Recherche dans `root` les éléments portant l'attribut `data-xal-form-clear-criteria`, puis
@@ -99,5 +128,11 @@ export function initFormClearButtons(root = document) {
                     clearFormFields(button.form);
                 }
             });
+        });
+
+    root
+        .querySelectorAll(XalConstants.cssQueries.form.xalClearInput)
+        .forEach((button) => {
+            button.addEventListener('click', clearInput);
         });
 }
