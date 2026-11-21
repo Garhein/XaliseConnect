@@ -1,4 +1,5 @@
-﻿import { XalHttp } from './XalHttp.js';
+import { XalHttp } from './XalHttp.js';
+import { validateForm } from './XalFormValidation.js';
 
 const SEARCH_FORM_SELECTOR              = 'form.xal-form-search[data-xal-search-results]';
 const CONVERTER_ATTRIBUTE_SELECTOR      = '[data-xal-search-convert][name]';
@@ -130,6 +131,10 @@ function createLoadingIndicators(form) {
  * @returns {Promise<void>}                         Promesse terminée après le traitement de la réponse.
  */
 async function submitSearchForm(form, resultsContainer) {
+    if (!validateForm(form)) {
+        return;
+    }
+
     const searchNumber = (searchNumbersByResultsContainer.get(resultsContainer) ?? 0) + 1;
     searchNumbersByResultsContainer.set(resultsContainer, searchNumber);
 
@@ -200,6 +205,10 @@ export function initSearchForms(root = document) {
         initializedForms.add(form);
 
         form.addEventListener('submit', (event) => {
+            if (event.defaultPrevented) {
+                return;
+            }
+
             event.preventDefault();
             const pageField = form.elements.namedItem('page');
 

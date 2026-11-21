@@ -37,6 +37,8 @@ export const XalConstants = Object.freeze({
             deletionSuccessCount:           'data-xal-deletion-success-count',
             deletionFailureCount:           'data-xal-deletion-failure-count',
             deletionTotalCount:             'data-xal-deletion-total-count',
+            rangeStart:                     'data-xal-range-start',
+            rangeMessage:                   'data-xal-range-message',
             recordId:                       'data-xal-record-id',
             recordLabel:                    'data-xal-record-label',
             tableContainerActions :         'data-xal-table-container-actions',
@@ -112,6 +114,7 @@ export const XalConstants = Object.freeze({
 
         form: Object.freeze({
             needsValidate:      '.needs-validation',
+            rangeEndField:      '[data-xal-range-start]',
             staticTarget:       'form[data-xal-target]',
             xalClearCriteria:   '[data-xal-form-clear-criteria]',
         }),

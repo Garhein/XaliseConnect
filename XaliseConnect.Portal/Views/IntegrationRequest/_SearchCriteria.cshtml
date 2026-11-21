@@ -4,7 +4,8 @@
 <form asp-route="@IntegrationRequestRoute.CSTS_SEARCH"
       id="xal-id-integration-request-search"
       method="get"
-      class="card mb-3 xal-form-search"
+      class="card mb-3 xal-form-search needs-validation"
+      novalidate
       data-xal-search-results="#xal-id-integration-request-results"
       data-xal-search-loader="overlay"
       data-xal-search-loader-message="Recherche en cours..."
@@ -16,7 +17,7 @@
     <input type="hidden" name="sort" value="@IntegrationRequestSortColumn.CSTS_RECEIVED_AT">
     <input type="hidden" name="direction" value="@PaginationSortDirection.CSTS_DESCENDING">
     <div class="card-body">
-        <div class="row gy-2 gx-3 align-items-end">
+        <div class="row gy-2 gx-3 align-items-start">
             <div class="col-12 col-md-6 col-xl-3">
                 <label for="search-request-id" class="form-label">N° de demande</label>
                 <input name="requestNumber"
@@ -35,7 +36,16 @@
                     </div>
                     <div class="col-12 col-sm-6">
                         <label for="search-date-end" class="form-label">Reçue jusqu'au</label>
-                        <input name="receivedTo" id="search-date-end" type="datetime-local" class="form-control form-control-sm">
+                        <input name="receivedTo"
+                               id="search-date-end"
+                               type="datetime-local"
+                               class="form-control form-control-sm"
+                               data-xal-range-start="#search-date-start"
+                               data-xal-range-message="La date de fin doit être supérieure ou égale à la date de début."
+                               aria-describedby="search-date-end-range-feedback">
+                        <div id="search-date-end-range-feedback" class="invalid-feedback text-justify">
+                            La date de fin doit être supérieure ou égale à la date de début.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -82,7 +92,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-xl-3 d-flex justify-content-end gap-2 mt-3 mt-xl-0">
+            <div class="col-12 col-xl-3 d-flex justify-content-end gap-2 mt-3 mt-xl-0 align-self-end">
                 <button type="submit" class="btn btn-sm btn-xalise">
                     <i class="bi bi-search me-1" aria-hidden="true"></i>
                     Rechercher
