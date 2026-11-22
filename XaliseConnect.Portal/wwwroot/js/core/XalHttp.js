@@ -134,13 +134,14 @@ async function handleRequestError(error, configuration) {
 export const XalHttp = Object.freeze({
     /**
      * Envoie une requête HTTP et renvoie sa réponse après vérification du statut.
-     * Les loaders activés sont toujours arrêtés, y compris si la requête échoue.
+     * Les loaders activés sont toujours arrêtés, y compris si la requête échoue. Chaque overlay
+     * obtient un jeton propre à la requête ; les messages simultanés sont affichés dans l'ordre d'activation.
      *
      * @param   {string|URL}                url                             URL de la ressource demandée.
      * @param   {RequestInit}               [fetchOptions={}]               Options natives de la requête Fetch.
      * @param   {Object}                    [indicators={}]                 Configuration des indicateurs et callbacks.
      * @param   {boolean}                   [indicators.nav=true]           Active la barre de chargement de navigation.
-     * @param   {boolean|string}            [indicators.overlay=false]      Affiche l'overlay, avec un message facultatif.
+     * @param   {boolean|string}            [indicators.overlay=false]      Active l'overlay, avec un message facultatif conservé selon l'ordre des requêtes actives.
      * @param   {string|Object|null}        [indicators.placeholder=null]   Cible du placeholder ou objet `{ target, mode }`.
      * @param   {Function|null}             [indicators.onError=null]       Callback personnalisé recevant une `Response` ou une `Error`.
      * @param   {Function|null}             [indicators.onSuccess=null]     Callback recevant la réponse et une copie de son corps parsé.
@@ -153,7 +154,7 @@ export const XalHttp = Object.freeze({
     async fetch(url, fetchOptions = {}, indicators = {}) {
         const configuration = buildIndicatorConfiguration(indicators);
         const startedAt     = Date.now();
-        const loaderState   = { navStarted: false, overlayShown: false, placeholderShown: false, };
+        const loaderState   = { navStarted: false, overlayRelease: null, placeholderShown: false, };
 
         try {
             if (configuration.nav) {
@@ -163,8 +164,7 @@ export const XalHttp = Object.freeze({
 
             if (configuration.overlay) {
                 const overlayMessage = typeof configuration.overlay === 'string' ? configuration.overlay : '';
-                XalLoaderOverlay.show(overlayMessage);
-                loaderState.overlayShown = true;
+                loaderState.overlayRelease = XalLoaderOverlay.show(overlayMessage);
             }
 
             if (configuration.placeholder) {
@@ -214,8 +214,8 @@ export const XalHttp = Object.freeze({
                 XalLoaderPlaceholder.hide(configuration.placeholder.target);
             }
 
-            if (loaderState.overlayShown) {
-                XalLoaderOverlay.hide();
+            if (loaderState.overlayRelease) {
+                loaderState.overlayRelease();
             }
 
             if (loaderState.navStarted) {
