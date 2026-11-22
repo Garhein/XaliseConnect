@@ -175,6 +175,8 @@ async function confirmDeleteSelected(trigger) {
  * @returns {Promise<void>}
  */
 async function deleteSelectedIntegrationRequests(deleteUrl, table, selectedRequests) {
+    let hasReceivedSuccessfulResponse = false;
+
     try {
         const response = await XalHttp.fetch(
             deleteUrl,
@@ -193,12 +195,14 @@ async function deleteSelectedIntegrationRequests(deleteUrl, table, selectedReque
             }
         );
 
+        hasReceivedSuccessfulResponse = true;
+
         const responseHtml      = await response.text();
         const responseDocument  = new DOMParser().parseFromString(responseHtml, 'text/html');
         const deletionSummary   = responseDocument.body.querySelector(`[${XalConstants.dataNames.xalise.deletionSummary}]`);
 
         if (!(deletionSummary instanceof HTMLElement)) {
-            XalToast.error('Le serveur n’a pas renvoyé le récapitulatif des suppressions. Aucune actualisation n’a été effectuée.');
+            refreshAfterUnreadableBulkDeletionSummary(table);
             return;
         }
 
@@ -216,12 +220,7 @@ async function deleteSelectedIntegrationRequests(deleteUrl, table, selectedReque
             && deletedCount + failedCount === requestedCount;
 
         if (!hasValidCounts) {
-            XalToast.error('Le résultat de la suppression est incomplet ou incohérent. Vérifiez la liste avant de relancer l’opération.');
-
-            if (deletedCount > 0) {
-                refreshIntegrationRequestSearch(table);
-            }
-
+            refreshAfterUnreadableBulkDeletionSummary(table);
             return;
         }
 
@@ -248,8 +247,23 @@ async function deleteSelectedIntegrationRequests(deleteUrl, table, selectedReque
         refreshIntegrationRequestSearch(table);
     }
     catch {
-        // Le callback onError a affiché un message utilisateur; aucune actualisation n'est demandée.
+        if (hasReceivedSuccessfulResponse) {
+            refreshAfterUnreadableBulkDeletionSummary(table);
+        }
+        // Sinon, le callback onError a déjà signalé l'échec HTTP ou réseau.
     }
+}
+
+/**
+ * Signale que le bilan d'une suppression groupée est inexploitable et relance la recherche
+ * pour réconcilier les résultats avec l'état courant du serveur.
+ *
+ * @param   {HTMLTableElement} table Tableau dont les résultats doivent être actualisés.
+ * @returns {void}
+ */
+function refreshAfterUnreadableBulkDeletionSummary(table) {
+    XalToast.warning('Le résultat des suppressions n’a pas pu être confirmé. La liste va être rechargée.');
+    refreshIntegrationRequestSearch(table);
 }
 
 /**
