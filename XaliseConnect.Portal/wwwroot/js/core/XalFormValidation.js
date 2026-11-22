@@ -1,5 +1,6 @@
 ﻿import { XalConstants } from './XalConstants.js';
 
+const SEARCH_FORM_SELECTOR = 'form.xal-form-search';
 const initializedForms = new WeakSet();
 
 /**
@@ -60,15 +61,24 @@ function _areRangeBoundsValid(rangeStartField, rangeEndField) {
 
 /**
  * Met à jour les règles personnalisées puis valide un formulaire.
+ * Les formulaires de recherche n'affichent les styles de validation que lorsqu'ils sont invalides ;
+ * les autres formulaires conservent le comportement Bootstrap standard après validation.
  *
  * @param   {HTMLFormElement} form Formulaire à vérifier.
  * @returns {boolean}              `true` si le formulaire est valide, sinon `false`.
  */
 export function validateForm(form) {
     _validateRelatedRangeFields(form);
-    form.classList.add(XalConstants.cssClasses.form.wasValidated);
+    const isFormValid = form.checkValidity();
 
-    return form.checkValidity();
+    if (form.matches(SEARCH_FORM_SELECTOR)) {
+        form.classList.toggle(XalConstants.cssClasses.form.wasValidated, !isFormValid);
+    }
+    else {
+        form.classList.add(XalConstants.cssClasses.form.wasValidated);
+    }
+
+    return isFormValid;
 }
 
 /**
