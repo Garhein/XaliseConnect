@@ -37,11 +37,47 @@ function getCurrentSortState(table) {
 }
 
 /**
+ * Met à jour les icônes de tri d'une table sans modifier `aria-sort`.
+ * Cette fonction sert à afficher temporairement le tri demandé ; le serveur reste responsable
+ * de confirmer le tri effectif et de fournir la valeur finale de `aria-sort`.
+ *
+ * @param   {HTMLTableElement} table         Table dont les icônes doivent être actualisées.
+ * @param   {string|null}      sortColumn    Clé de la colonne de tri souhaitée.
+ * @param   {string|null}      sortDirection Sens de tri souhaité.
+ * @returns {void}
+ */
+export function updateSortIcons(table, sortColumn, sortDirection) {
+    table.querySelectorAll(XalConstants.cssQueries.table.sort.column).forEach((sortButton) => {
+        const sortIcon = sortButton.querySelector(XalConstants.cssQueries.table.sort.icon);
+
+        if (!sortIcon) {
+            return;
+        }
+
+        sortIcon.classList.remove(
+            XalConstants.cssClasses.bootstrapIcons.arrowUp,
+            XalConstants.cssClasses.bootstrapIcons.arrowDown,
+            XalConstants.cssClasses.bootstrapIcons.arrowDownUp
+        );
+
+        if (sortButton.getAttribute(XalConstants.dataNames.xalise.tableSortColumn) === sortColumn) {
+            sortIcon.classList.add(
+                sortDirection === XalConstants.sortDirections.ascending
+                    ? XalConstants.cssClasses.bootstrapIcons.arrowUp
+                    : XalConstants.cssClasses.bootstrapIcons.arrowDown
+            );
+        }
+        else {
+            sortIcon.classList.add(XalConstants.cssClasses.bootstrapIcons.arrowDownUp);
+        }
+    });
+}
+
+/**
  * Initialise le tri des colonnes déclarées avec `data-xal-table-sort-column`.
  * 
- * L'initialiseur émet `xal-table:sort` avec la clé et le sens demandés.
- * L'affichage de la table n'est pas modifié avant la réponse : les attributs `aria-sort` et les icônes sont rendus par
- * le serveur avec le tri réellement appliqué.
+ * L'initialiseur met à jour provisoirement l'icône et émet `xal-table:sort` avec la clé et le sens
+ * demandés. `aria-sort` reste celui des résultats visibles ; la réponse serveur confirme l'état final.
  * 
  * @param {ParentNode} root Racine dans laquelle écouter les clics de tri.
  */
@@ -74,7 +110,9 @@ export function initTableSort(root = document) {
             ? XalConstants.sortDirections.descending
             : XalConstants.sortDirections.ascending;
 
-        // Demande le tri ; l'icône ne changera qu'au rendu des résultats confirmés par le serveur.
+        updateSortIcons(table, sortColumn, direction);
+
+        // Demande le tri ; `aria-sort` sera mis à jour par le rendu serveur après confirmation.
         table.dispatchEvent(new CustomEvent('xal-table:sort', {
             bubbles: true,
             detail: {

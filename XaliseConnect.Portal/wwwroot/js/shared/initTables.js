@@ -1,6 +1,6 @@
 ﻿import { XalConstants } from '../core/XalConstants.js';
 import { initTableSelection } from '../core/XalTableSelection.js';
-import { initTableSort } from '../core/XalTableSort.js';
+import { initTableSort, updateSortIcons } from '../core/XalTableSort.js';
 import { initTablePagination } from '../core/XalTablePagination.js';
 
 const PAGE_SELECT_SELECTOR = '[data-xal-table-page-select]';
@@ -55,7 +55,10 @@ function submitTableStateChange(table, stateValues, rollbackValues = null) {
     }
 
     searchForm.dispatchEvent(new CustomEvent('xal-search:state-change', {
-        detail: { rollbackValues },
+        detail: {
+            rollbackValues,
+            tableId: rollbackValues ? table.id : null,
+        },
     }));
 }
 
@@ -120,5 +123,16 @@ export function initTables(root = document) {
                 page: event.detail.page,
             }
         );
+    });
+
+    root.addEventListener('xal-search:state-change-failed', (event) => {
+        const table = event.target;
+        const rollbackValues = event.detail?.rollbackValues;
+
+        if (!(table instanceof HTMLTableElement) || !rollbackValues) {
+            return;
+        }
+
+        updateSortIcons(table, rollbackValues.sort, rollbackValues.direction);
     });
 }

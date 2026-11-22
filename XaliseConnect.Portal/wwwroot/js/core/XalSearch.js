@@ -5,6 +5,7 @@ const SEARCH_FORM_SELECTOR              = 'form.xal-form-search[data-xal-search-
 const CONVERTER_ATTRIBUTE_SELECTOR      = '[data-xal-search-convert][name]';
 const initializedForms                  = new WeakSet();
 const searchNumbersByResultsContainer   = new WeakMap();
+const pendingStateChangesByResultsContainer = new WeakMap();
 
 const VALUE_CONVERTERS = Object.freeze({
     'datetime-local-to-utc': (value) => {
@@ -130,21 +131,39 @@ function createLoadingIndicators(form) {
  * @param   {HTMLFormElement}        form                Formulaire dont l'état doit être restauré.
  * @param   {HTMLElement}             resultsContainer   Conteneur associé à la séquence de recherche.
  * @param   {number}                 searchNumber        Numéro de la recherche terminée.
- * @param   {Object<string, string>|null} rollbackValues Valeurs d'état précédemment affichées.
- * @returns {void}
+ * @param   {Object} stateChangeContext Contexte de l'état précédemment affiché.
+ * @returns {boolean}                   `true` si l'état a été restauré.
  */
-function _restoreSearchState(form, resultsContainer, searchNumber, rollbackValues) {
-    if (!rollbackValues || searchNumber !== searchNumbersByResultsContainer.get(resultsContainer)) {
-        return;
+function _restoreSearchState(form, resultsContainer, searchNumber, stateChangeContext) {
+    if (!stateChangeContext?.rollbackValues
+        || searchNumber !== searchNumbersByResultsContainer.get(resultsContainer)) {
+        return false;
     }
 
-    for (const [fieldName, fieldValue] of Object.entries(rollbackValues)) {
+    for (const [fieldName, fieldValue] of Object.entries(stateChangeContext.rollbackValues)) {
         const field = form.elements.namedItem(fieldName);
 
         if (field instanceof HTMLInputElement) {
             field.value = fieldValue;
         }
     }
+
+    pendingStateChangesByResultsContainer.delete(resultsContainer);
+
+    const table = stateChangeContext.tableId
+        ? document.getElementById(stateChangeContext.tableId)
+        : null;
+
+    if (table instanceof HTMLTableElement) {
+        table.dispatchEvent(new CustomEvent('xal-search:state-change-failed', {
+            bubbles: true,
+            detail: {
+                rollbackValues: stateChangeContext.rollbackValues,
+            },
+        }));
+    }
+
+    return true;
 }
 
 /**
@@ -154,12 +173,20 @@ function _restoreSearchState(form, resultsContainer, searchNumber, rollbackValue
  * @param   {HTMLElement}       resultsContainer    Conteneur à actualiser.
  * @returns {Promise<void>}                         Promesse terminée après le traitement de la réponse.
  */
-async function submitSearchForm(form, resultsContainer, rollbackValues = null) {
+async function submitSearchForm(form, resultsContainer, stateChangeContext = null) {
+    if (stateChangeContext?.rollbackValues) {
+        pendingStateChangesByResultsContainer.set(resultsContainer, stateChangeContext);
+    }
+
+    const activeStateChangeContext = stateChangeContext?.rollbackValues
+        ? stateChangeContext
+        : pendingStateChangesByResultsContainer.get(resultsContainer) ?? null;
+
     const searchNumber = (searchNumbersByResultsContainer.get(resultsContainer) ?? 0) + 1;
     searchNumbersByResultsContainer.set(resultsContainer, searchNumber);
 
     if (!validateForm(form)) {
-        _restoreSearchState(form, resultsContainer, searchNumber, rollbackValues);
+        _restoreSearchState(form, resultsContainer, searchNumber, activeStateChangeContext);
         return;
     }
 
@@ -180,6 +207,7 @@ async function submitSearchForm(form, resultsContainer, rollbackValues = null) {
         }
 
         resultsContainer.innerHTML = responseHtml;
+        pendingStateChangesByResultsContainer.delete(resultsContainer);
 
         resultsContainer.dispatchEvent(new CustomEvent('xal-search:results-updated', {
             bubbles: true,
@@ -190,7 +218,7 @@ async function submitSearchForm(form, resultsContainer, rollbackValues = null) {
         }));
     }
     catch (error) {
-        _restoreSearchState(form, resultsContainer, searchNumber, rollbackValues);
+        _restoreSearchState(form, resultsContainer, searchNumber, activeStateChangeContext);
 
         if (!(error instanceof Response)) {
             console.error('[XalSearch] La recherche a échoué.', error);
@@ -247,7 +275,7 @@ export function initSearchForms(root = document) {
         });
 
         form.addEventListener('xal-search:state-change', (event) => {
-            void submitSearchForm(form, resultsContainer, event.detail?.rollbackValues ?? null);
+            void submitSearchForm(form, resultsContainer, event.detail ?? null);
         });
     }
 }
