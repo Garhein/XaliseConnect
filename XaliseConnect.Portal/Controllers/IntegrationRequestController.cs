@@ -137,12 +137,13 @@ public sealed class IntegrationRequestController : Controller
             SearchWithoutStatusTransport    = searchWithoutTransportStatus,
             StatusIntegration               = integrationStatus,
             SearchWithoutStatusIntegration  = searchWithoutIntegrationStatus,
-            Pagination                      = this._CreatePaginationCriteria(
-                searchRequest.Page,
-                searchRequest.PageSize,
-                searchRequest.Sort,
-                searchRequest.Direction ?? IntegrationRequestSortColumn.CSTS_RECEIVED_AT
-            )
+            Pagination                      = new PaginationCriteria
+            {
+                PageNumber      = searchRequest.Page,
+                PageSize        = searchRequest.PageSize,
+                SortColumn      = searchRequest.Sort,
+                SortDirection   = searchRequest.Direction
+            }
         };
 
         PagedResult<IntegrationRequestListItem> integrationRequests = await this._integrationRequestQueryService.GetIntegrationRequestListAsync(
@@ -277,38 +278,6 @@ public sealed class IntegrationRequestController : Controller
                 message = EnumIntegrationRequestDeletionResult.UnexpectedFailure.GetDescription()
             });
         }
-    }
-
-    /// <summary>
-    /// Normalise les paramètres de tri et de pagination fournis par la requête.
-    /// </summary>
-    /// <param name="pageNumber">Numéro de page demandé.</param>
-    /// <param name="pageSize">Nombre maximal d'éléments par page demandé.</param>
-    /// <param name="sortColumn">Clé de la colonne de tri demandée.</param>
-    /// <param name="sortDirection">Sens de tri demandé.</param>
-    /// <returns>Critères de pagination normalisés.</returns>
-    private PaginationCriteria _CreatePaginationCriteria(int pageNumber, int pageSize, string? sortColumn, string? sortDirection)
-    {
-        string normalizedSortColumn = sortColumn switch
-        {
-            IntegrationRequestSortColumn.CSTS_REQUEST_NUMBER => IntegrationRequestSortColumn.CSTS_REQUEST_NUMBER,
-            IntegrationRequestSortColumn.CSTS_SOURCE => IntegrationRequestSortColumn.CSTS_SOURCE,
-            _ => IntegrationRequestSortColumn.CSTS_RECEIVED_AT
-        };
-
-        string normalizedSortDirection = sortDirection?.ToLowerInvariant() switch
-        {
-            PaginationSortDirection.CSTS_ASCENDING => PaginationSortDirection.CSTS_ASCENDING,
-            _ => PaginationSortDirection.CSTS_DESCENDING
-        };
-
-        return new PaginationCriteria
-        {
-            PageNumber      = Math.Max(1, pageNumber),
-            PageSize        = pageSize,
-            SortColumn      = normalizedSortColumn,
-            SortDirection   = normalizedSortDirection
-        };
     }
 
     /// <summary>

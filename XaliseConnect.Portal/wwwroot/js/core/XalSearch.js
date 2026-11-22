@@ -212,7 +212,7 @@ export function initSearchForms(root = document) {
             event.preventDefault();
             const pageField = form.elements.namedItem('page');
 
-            if (pageField instanceof HTMLInputElement) {
+            if (pageField instanceof HTMLInputElement && pageField.value !== '') {
                 pageField.value = '1';
             }
 
