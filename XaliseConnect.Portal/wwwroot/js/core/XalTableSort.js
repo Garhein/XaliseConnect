@@ -1,68 +1,84 @@
-import { XalConstants } from './XalConstants.js';
+﻿import { XalConstants } from './XalConstants.js';
+
+/**
+ * Lit le tri demandé dans le formulaire associé ou, à défaut, celui affiché par la table.
+ *
+ * @param   {HTMLTableElement} table Table dont le tri demandé doit être lu.
+ * @returns {{key: string|null, direction: string|null}} État de tri courant.
+ */
+function getCurrentSortState(table) {
+    const searchFormSelector = table.getAttribute(XalConstants.dataNames.xalise.tableSearchForm);
+    const searchForm         = searchFormSelector ? document.querySelector(searchFormSelector) : null;
+
+    if (searchForm instanceof HTMLFormElement) {
+        const sortField         = searchForm.elements.namedItem('sort');
+        const directionField    = searchForm.elements.namedItem('direction');
+
+        if (sortField instanceof HTMLInputElement
+            && directionField instanceof HTMLInputElement
+            && sortField.value !== ''
+            && directionField.value !== '') {
+            return {
+                key: sortField.value,
+                direction: directionField.value,
+            };
+        }
+    }
+
+    const activeSortButton = [...table.querySelectorAll(XalConstants.cssQueries.table.sort.column)]
+        .find((sortButton) => sortButton.closest('th')?.hasAttribute(XalConstants.ariaNames.sort));
+
+    const activeHeader = activeSortButton?.closest('th');
+
+    return {
+        key: activeSortButton?.getAttribute(XalConstants.dataNames.xalise.tableSortColumn) ?? null,
+        direction: activeHeader?.getAttribute(XalConstants.ariaNames.sort) ?? null,
+    };
+}
 
 /**
  * Initialise le tri des colonnes déclarées avec `data-xal-table-sort-column`.
  * 
- * Le sens du tri est porté par `aria-sort` sur le `<th>`. Après chaque changement, la table
- * émet `xal-table:sort` avec la clé du tri et le sens demandé, afin qu'un autre module charge
- * ou trie les résultats.
+ * L'initialiseur émet `xal-table:sort` avec la clé et le sens demandés.
+ * L'affichage de la table n'est pas modifié avant la réponse : les attributs `aria-sort` et les icônes sont rendus par
+ * le serveur avec le tri réellement appliqué.
  * 
  * @param {ParentNode} root Racine dans laquelle écouter les clics de tri.
  */
 export function initTableSort(root = document) {
     root.addEventListener('click', (event) => {
+        if (!(event.target instanceof Element)) {
+            return;
+        }
+
         // Le clic peut provenir de l'icône ou du texte à l'intérieur du bouton
         const button = event.target.closest(XalConstants.cssQueries.table.sort.column);
-        if (!button) return;
+        if (!(button instanceof HTMLButtonElement)) return;
 
         const table  = button.closest('table');
-        const header = button.closest('th');
 
-        // Ignore les déclencheurs qui ne sont pas placés dans un en-tête de table
-        if (!table || !header) return;
+        // Ignore les déclencheurs qui ne sont pas placés dans une table
+        if (!(table instanceof HTMLTableElement)) return;
 
-        // Alterne le sens à chaque clic sur la colonne active
-        const currentDirection  = header.getAttribute(XalConstants.ariaNames.sort);
-        const direction         = currentDirection === XalConstants.sortDirections.ascending
+        const sortColumn = button.getAttribute(XalConstants.dataNames.xalise.tableSortColumn);
+
+        if (!sortColumn) {
+            console.error('[XalTableSort] La clé de tri du bouton est absente.');
+            return;
+        }
+
+        const currentSortState = getCurrentSortState(table);
+
+        const direction = currentSortState.key === sortColumn
+            && currentSortState.direction === XalConstants.sortDirections.ascending
             ? XalConstants.sortDirections.descending
             : XalConstants.sortDirections.ascending;
 
-        // Réinitialise l'état et l'icône de toutes les colonnes triables
-        table.querySelectorAll(XalConstants.cssQueries.table.sort.column)
-             .forEach((sortButton) => {
-                const sortHeader = sortButton.closest('th');
-                const sortIcon   = sortButton.querySelector(XalConstants.cssQueries.table.sort.icon);
-
-                sortHeader?.removeAttribute(XalConstants.ariaNames.sort);
-
-                if (sortIcon) {
-                    sortIcon.classList.remove(
-                        XalConstants.cssClasses.bootstrapIcons.arrowUp,
-                        XalConstants.cssClasses.bootstrapIcons.arrowDown
-                    );
-
-                    sortIcon.classList.add(XalConstants.cssClasses.bootstrapIcons.arrowDownUp);
-                }
-             });
-
-        // Applique le nouvel état à la colonne cliquée
-        header.setAttribute(XalConstants.ariaNames.sort, direction);
-
-        // Synchronise l'icône avec le sens annoncé par aria-sort
-        const icon = button.querySelector(XalConstants.cssQueries.table.sort.icon);
-        if (icon) {
-            icon.classList.add(
-                direction === XalConstants.sortDirections.ascending
-                    ? XalConstants.cssClasses.bootstrapIcons.arrowUp
-                    : XalConstants.cssClasses.bootstrapIcons.arrowDown
-            );
-        }
-
-        // Délègue le tri effectif à l'écouteur de la table
+        // Demande le tri ; l'icône ne changera qu'au rendu des résultats confirmés par le serveur.
         table.dispatchEvent(new CustomEvent('xal-table:sort', {
             bubbles: true,
             detail: {
-                key: button.getAttribute(XalConstants.dataNames.xalise.tableSortColumn),
+                key: sortColumn,
                 direction,
                 label: button.getAttribute(XalConstants.dataNames.xalise.tableSortLabel),
             },

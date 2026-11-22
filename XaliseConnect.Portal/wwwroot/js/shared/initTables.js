@@ -3,14 +3,38 @@ import { initTableSelection } from '../core/XalTableSelection.js';
 import { initTableSort } from '../core/XalTableSort.js';
 import { initTablePagination } from '../core/XalTablePagination.js';
 
+const PAGE_SELECT_SELECTOR = '[data-xal-table-page-select]';
+
+/**
+ * Récupère le tri et la page actuellement affichés, qui représentent le dernier état appliqué.
+ *
+ * @param   {ParentNode}       root  Racine contenant la table et sa pagination.
+ * @param   {HTMLTableElement} table Table dont l'état affiché doit être lu.
+ * @returns {Object<string, string>} Valeurs à restaurer si le tri demandé échoue.
+ */
+function getAppliedTableState(root, table) {
+    const activeSortButton = [...table.querySelectorAll(XalConstants.cssQueries.table.sort.column)]
+        .find((sortButton) => sortButton.closest('th')?.hasAttribute(XalConstants.ariaNames.sort));
+
+    const activeSortHeader  = activeSortButton?.closest('th');
+    const pageSelect        = root.querySelector(PAGE_SELECT_SELECTOR);
+
+    return {
+        sort: activeSortButton?.getAttribute(XalConstants.dataNames.xalise.tableSortColumn) ?? '',
+        direction: activeSortHeader?.getAttribute(XalConstants.ariaNames.sort) ?? '',
+        page: pageSelect instanceof HTMLSelectElement ? pageSelect.value : '1',
+    };
+}
+
 /**
  * Met à jour l'état de recherche caché et demande une nouvelle recherche.
  *
- * @param   {HTMLTableElement}              table           Table dont les données changent.
- * @param   {Object<string, string|number>} stateValues     Valeurs d'état à modifier.
+ * @param   {HTMLTableElement}              table            Table dont les données changent.
+ * @param   {Object<string, string|number>} stateValues      Valeurs d'état à modifier.
+ * @param   {Object<string, string>}        [rollbackValues] État affiché à restaurer en cas d'échec.
  * @returns {void}
  */
-function submitTableStateChange(table, stateValues) {
+function submitTableStateChange(table, stateValues, rollbackValues = null) {
     const searchFormSelector = table.getAttribute(XalConstants.dataNames.xalise.tableSearchForm);
     const searchForm         = searchFormSelector ? document.querySelector(searchFormSelector) : null;
 
@@ -30,7 +54,9 @@ function submitTableStateChange(table, stateValues) {
         field.value = String(fieldValue);
     }
 
-    searchForm.dispatchEvent(new Event('xal-search:state-change'));
+    searchForm.dispatchEvent(new CustomEvent('xal-search:state-change', {
+        detail: { rollbackValues },
+    }));
 }
 
 /**
@@ -54,11 +80,15 @@ export function initTables(root = document) {
 
         const { key, direction } = event.detail;
 
-        submitTableStateChange(table, {
-            sort: key,
-            direction,
-            page: 1,
-        });
+        submitTableStateChange(
+            table,
+            {
+                sort: key,
+                direction,
+                page: 1,
+            },
+            getAppliedTableState(root, table)
+        );
     });
 
     root.addEventListener('xal-table:page-size-change', (event) => {
@@ -68,10 +98,13 @@ export function initTables(root = document) {
             return;
         }
 
-        submitTableStateChange(table, {
-            pageSize: event.detail.pageSize,
-            page: 1,
-        });
+        submitTableStateChange(
+            table,
+            {
+                pageSize: event.detail.pageSize,
+                page: 1,
+            }
+        );
     });
 
     root.addEventListener('xal-table:page-change', (event) => {
@@ -81,8 +114,11 @@ export function initTables(root = document) {
             return;
         }
 
-        submitTableStateChange(table, {
-            page: event.detail.page,
-        });
+        submitTableStateChange(
+            table,
+            {
+                page: event.detail.page,
+            }
+        );
     });
 }

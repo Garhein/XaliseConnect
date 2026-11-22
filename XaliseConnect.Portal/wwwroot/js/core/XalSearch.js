@@ -1,4 +1,4 @@
-import { XalHttp } from './XalHttp.js';
+﻿import { XalHttp } from './XalHttp.js';
 import { validateForm } from './XalFormValidation.js';
 
 const SEARCH_FORM_SELECTOR              = 'form.xal-form-search[data-xal-search-results]';
@@ -124,19 +124,44 @@ function createLoadingIndicators(form) {
 }
 
 /**
+ * Restaure l'état de table appliqué si la recherche courante échoue.
+ * Une réponse antérieure ne doit pas écraser l'état d'une interaction plus récente.
+ *
+ * @param   {HTMLFormElement}        form                Formulaire dont l'état doit être restauré.
+ * @param   {HTMLElement}             resultsContainer   Conteneur associé à la séquence de recherche.
+ * @param   {number}                 searchNumber        Numéro de la recherche terminée.
+ * @param   {Object<string, string>|null} rollbackValues Valeurs d'état précédemment affichées.
+ * @returns {void}
+ */
+function _restoreSearchState(form, resultsContainer, searchNumber, rollbackValues) {
+    if (!rollbackValues || searchNumber !== searchNumbersByResultsContainer.get(resultsContainer)) {
+        return;
+    }
+
+    for (const [fieldName, fieldValue] of Object.entries(rollbackValues)) {
+        const field = form.elements.namedItem(fieldName);
+
+        if (field instanceof HTMLInputElement) {
+            field.value = fieldValue;
+        }
+    }
+}
+
+/**
  * Soumet un formulaire de recherche et remplace son conteneur de résultats.
  *
  * @param   {HTMLFormElement}   form                Formulaire soumis.
  * @param   {HTMLElement}       resultsContainer    Conteneur à actualiser.
  * @returns {Promise<void>}                         Promesse terminée après le traitement de la réponse.
  */
-async function submitSearchForm(form, resultsContainer) {
-    if (!validateForm(form)) {
-        return;
-    }
-
+async function submitSearchForm(form, resultsContainer, rollbackValues = null) {
     const searchNumber = (searchNumbersByResultsContainer.get(resultsContainer) ?? 0) + 1;
     searchNumbersByResultsContainer.set(resultsContainer, searchNumber);
+
+    if (!validateForm(form)) {
+        _restoreSearchState(form, resultsContainer, searchNumber, rollbackValues);
+        return;
+    }
 
     try {
         const searchRequest     = createSearchRequest(form);
@@ -165,6 +190,8 @@ async function submitSearchForm(form, resultsContainer) {
         }));
     }
     catch (error) {
+        _restoreSearchState(form, resultsContainer, searchNumber, rollbackValues);
+
         if (!(error instanceof Response)) {
             console.error('[XalSearch] La recherche a échoué.', error);
         }
@@ -219,8 +246,8 @@ export function initSearchForms(root = document) {
             void submitSearchForm(form, resultsContainer);
         });
 
-        form.addEventListener('xal-search:state-change', () => {
-            void submitSearchForm(form, resultsContainer);
+        form.addEventListener('xal-search:state-change', (event) => {
+            void submitSearchForm(form, resultsContainer, event.detail?.rollbackValues ?? null);
         });
     }
 }
