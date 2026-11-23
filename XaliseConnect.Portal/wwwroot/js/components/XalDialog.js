@@ -337,7 +337,7 @@ export const XalDialog = (() => {
         }
 
         if (config.action !== undefined && typeof config.action !== 'function') {
-            throw new TypeError(`[XalDialog] L\'action déclenchée par le bouton "${config.title}" doit être une fonction.`);
+            throw new TypeError(`[XalDialog] L'action déclenchée par le bouton "${config.title}" doit être une fonction.`);
         }
 
         const buttonTemplate = getTemplateRoot(TEMPLATE_IDS.button);

@@ -156,7 +156,7 @@ export const XalLoaderPlaceholder = (() => {
             }
 
             if (!VALID_MODES.has(mode)) {
-                console.warn(`[XalLoaderPlaceholder] Mode d\'insertion "${mode}" non valide, fallback sur "prepend".`);
+                console.warn(`[XalLoaderPlaceholder] Mode d'insertion "${mode}" non valide, fallback sur "prepend".`);
                 mode = INSERTION_MODES.PREPEND;
             }
 
