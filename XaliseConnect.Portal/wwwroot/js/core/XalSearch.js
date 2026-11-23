@@ -6,6 +6,8 @@ const CONVERTER_ATTRIBUTE_SELECTOR      = '[data-xal-search-convert][name]';
 const initializedForms                  = new WeakSet();
 const searchNumbersByResultsContainer   = new WeakMap();
 const pendingStateChangesByResultsContainer = new WeakMap();
+const resultsContainersByForm           = new WeakMap();
+const lastSuccessfulRequestsByForm      = new WeakMap();
 
 const VALUE_CONVERTERS = Object.freeze({
     'datetime-local-to-utc': (value) => {
@@ -76,6 +78,32 @@ function createSearchRequest(form) {
     }
 
     return { url: searchUrl, options };
+}
+
+/**
+ * Crée une copie réutilisable d'une requête de recherche déjà exécutée.
+ *
+ * @param   {{url: URL, options: RequestInit}} searchRequest Requête à copier.
+ * @returns {{url: URL, options: RequestInit}}                Copie indépendante de la requête.
+ */
+function cloneSearchRequest(searchRequest) {
+    const options = { ...searchRequest.options };
+
+    if (options.headers instanceof Headers) {
+        options.headers = new Headers(options.headers);
+    }
+    else if (options.headers) {
+        options.headers = { ...options.headers };
+    }
+
+    if (options.body instanceof URLSearchParams) {
+        options.body = new URLSearchParams(options.body);
+    }
+
+    return {
+        url: new URL(searchRequest.url.href),
+        options,
+    };
 }
 
 /**
@@ -155,7 +183,7 @@ function _restoreSearchState(form, resultsContainer, searchNumber, stateChangeCo
         : null;
 
     if (table instanceof HTMLTableElement) {
-        table.dispatchEvent(new CustomEvent('xal-search:state-change-failed', {
+        table.dispatchEvent(new CustomEvent('xal-search:state-restored', {
             bubbles: true,
             detail: {
                 rollbackValues: stateChangeContext.rollbackValues,
@@ -207,6 +235,7 @@ async function submitSearchForm(form, resultsContainer, stateChangeContext = nul
         }
 
         resultsContainer.innerHTML = responseHtml;
+        lastSuccessfulRequestsByForm.set(form, cloneSearchRequest(searchRequest));
         pendingStateChangesByResultsContainer.delete(resultsContainer);
 
         resultsContainer.dispatchEvent(new CustomEvent('xal-search:results-updated', {
@@ -223,6 +252,71 @@ async function submitSearchForm(form, resultsContainer, stateChangeContext = nul
         if (!(error instanceof Response)) {
             console.error('[XalSearch] La recherche a échoué.', error);
         }
+    }
+}
+
+/**
+ * Recharge les résultats à partir de la dernière recherche réussie, sans valider les valeurs
+ * de formulaire éventuellement modifiées depuis. Cette opération sert à réconcilier la liste
+ * après une mutation telle qu'une suppression.
+ *
+ * @param   {HTMLFormElement} form Formulaire de recherche associé aux résultats.
+ * @returns {Promise<boolean>}     `true` si les résultats ont été rechargés, sinon `false`.
+ */
+export async function refreshSearchWithLastSuccessfulCriteria(form) {
+    if (!(form instanceof HTMLFormElement)) {
+        return false;
+    }
+
+    const resultsContainer = resultsContainersByForm.get(form);
+    const savedSearchRequest = lastSuccessfulRequestsByForm.get(form);
+
+    if (!(resultsContainer instanceof HTMLElement) || !savedSearchRequest) {
+        return false;
+    }
+
+    const searchNumber = (searchNumbersByResultsContainer.get(resultsContainer) ?? 0) + 1;
+    searchNumbersByResultsContainer.set(resultsContainer, searchNumber);
+
+    const pendingStateChange = pendingStateChangesByResultsContainer.get(resultsContainer);
+
+    if (pendingStateChange) {
+        _restoreSearchState(form, resultsContainer, searchNumber, pendingStateChange);
+    }
+
+    try {
+        const loadingIndicators = createLoadingIndicators(form);
+        loadingIndicators.onError = async () => {};
+
+        const response = await XalHttp.fetch(
+            savedSearchRequest.url,
+            cloneSearchRequest(savedSearchRequest).options,
+            loadingIndicators
+        );
+        const responseHtml = await response.text();
+
+        if (searchNumber !== searchNumbersByResultsContainer.get(resultsContainer)) {
+            return false;
+        }
+
+        resultsContainer.innerHTML = responseHtml;
+
+        resultsContainer.dispatchEvent(new CustomEvent('xal-search:results-updated', {
+            bubbles: true,
+            detail: {
+                form,
+                resultsContainer,
+            },
+        }));
+
+        return true;
+    }
+    catch (error) {
+        if (!(error instanceof Response)) {
+            console.error('[XalSearch] Le rechargement des critères appliqués a échoué.', error);
+        }
+
+        return false;
     }
 }
 
@@ -258,6 +352,14 @@ export function initSearchForms(root = document) {
         }
 
         initializedForms.add(form);
+        resultsContainersByForm.set(form, resultsContainer);
+
+        try {
+            lastSuccessfulRequestsByForm.set(form, cloneSearchRequest(createSearchRequest(form)));
+        }
+        catch (error) {
+            console.error(`[XalSearch] Impossible de mémoriser la recherche initiale du formulaire '${form.id}'.`, error);
+        }
 
         form.addEventListener('submit', (event) => {
             if (event.defaultPrevented) {

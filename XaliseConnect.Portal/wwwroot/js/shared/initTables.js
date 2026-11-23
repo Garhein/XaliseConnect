@@ -125,7 +125,7 @@ export function initTables(root = document) {
         );
     });
 
-    root.addEventListener('xal-search:state-change-failed', (event) => {
+    root.addEventListener('xal-search:state-restored', (event) => {
         const table = event.target;
         const rollbackValues = event.detail?.rollbackValues;
 

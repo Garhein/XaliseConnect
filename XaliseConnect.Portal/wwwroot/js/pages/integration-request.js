@@ -6,6 +6,7 @@ import { XalDialog } from '../components/XalDialog.js';
 import { XalToast } from '../components/XalToast.js';
 import { XalLoaderOverlay } from '../loaders/XalLoaderOverlay.js';
 import { XalHttp } from '../core/XalHttp.js';
+import { refreshSearchWithLastSuccessfulCriteria } from '../core/XalSearch.js';
 
 const SELECTORS = Object.freeze({
     delete:         '.xal-table__row-actions--delete',
@@ -98,7 +99,14 @@ async function deleteIntegrationRequest(deleteUrl, recordContext, recordLabel) {
         XalToast.success(`La demande ${recordLabel} a été supprimée avec succès.`);
 
         const table = recordContext.element.closest('table');
-        refreshIntegrationRequestSearch(table);
+        const isSearchRefreshed = await refreshIntegrationRequestSearch(table);
+
+        if (!isSearchRefreshed) {
+            await showSearchRefreshRetryDialog(
+                table,
+                'La suppression est confirmée, mais la liste n’a pas pu être actualisée.'
+            );
+        }
     }
     catch {
         // Le callback onError a déjà affiché un message adapté et aucune actualisation n'est demandée.
@@ -202,7 +210,7 @@ async function deleteSelectedIntegrationRequests(deleteUrl, table, selectedReque
         const deletionSummary   = responseDocument.body.querySelector(`[${XalConstants.dataNames.xalise.deletionSummary}]`);
 
         if (!(deletionSummary instanceof HTMLElement)) {
-            refreshAfterUnreadableBulkDeletionSummary(table);
+            await refreshAfterUnreadableBulkDeletionSummary(table);
             return;
         }
 
@@ -220,7 +228,7 @@ async function deleteSelectedIntegrationRequests(deleteUrl, table, selectedReque
             && deletedCount + failedCount === requestedCount;
 
         if (!hasValidCounts) {
-            refreshAfterUnreadableBulkDeletionSummary(table);
+            await refreshAfterUnreadableBulkDeletionSummary(table);
             return;
         }
 
@@ -244,11 +252,18 @@ async function deleteSelectedIntegrationRequests(deleteUrl, table, selectedReque
             await showBulkDeletionSummary(deletionSummary);
         }
 
-        refreshIntegrationRequestSearch(table);
+        const isSearchRefreshed = await refreshIntegrationRequestSearch(table);
+
+        if (!isSearchRefreshed) {
+            await showSearchRefreshRetryDialog(
+                table,
+                'La suppression est confirmée, mais la liste n’a pas pu être actualisée.'
+            );
+        }
     }
     catch {
         if (hasReceivedSuccessfulResponse) {
-            refreshAfterUnreadableBulkDeletionSummary(table);
+            await refreshAfterUnreadableBulkDeletionSummary(table);
         }
         // Sinon, le callback onError a déjà signalé l'échec HTTP ou réseau.
     }
@@ -259,11 +274,20 @@ async function deleteSelectedIntegrationRequests(deleteUrl, table, selectedReque
  * pour réconcilier les résultats avec l'état courant du serveur.
  *
  * @param   {HTMLTableElement} table Tableau dont les résultats doivent être actualisés.
- * @returns {void}
+ * @returns {Promise<void>}
  */
-function refreshAfterUnreadableBulkDeletionSummary(table) {
-    XalToast.warning('Le résultat des suppressions n’a pas pu être confirmé. La liste va être rechargée.');
-    refreshIntegrationRequestSearch(table);
+async function refreshAfterUnreadableBulkDeletionSummary(table) {
+    const isSearchRefreshed = await refreshIntegrationRequestSearch(table);
+
+    if (isSearchRefreshed) {
+        XalToast.warning('Le résultat des suppressions n’a pas pu être confirmé. La liste a été rechargée.');
+        return;
+    }
+
+    await showSearchRefreshRetryDialog(
+        table,
+        'Le résultat des suppressions n’a pas pu être confirmé et la liste n’a pas pu être actualisée.'
+    );
 }
 
 /**
@@ -289,21 +313,55 @@ async function showBulkDeletionSummary(summaryView) {
 }
 
 /**
- * Recharge les résultats du tableau en conservant les critères de recherche et l'état de pagination/tri.
+ * Recharge les résultats avec les derniers critères ayant produit la liste affichée.
  *
  * @param   {HTMLTableElement|null} table Tableau dont les résultats doivent être rechargés.
- * @returns {void}
+ * @returns {Promise<boolean>}             `true` si la recherche a abouti, sinon `false`.
  */
-function refreshIntegrationRequestSearch(table) {
+async function refreshIntegrationRequestSearch(table) {
     const searchFormSelector = table?.getAttribute(XalConstants.dataNames.xalise.tableSearchForm);
     const searchForm         = searchFormSelector ? document.querySelector(searchFormSelector) : null;
 
     if (!(searchForm instanceof HTMLFormElement)) {
         console.error('[IntegrationRequest] Le formulaire de recherche est introuvable après la suppression des demandes.');
-        return;
+        return false;
     }
 
-    searchForm.dispatchEvent(new Event('xal-search:state-change'));
+    return await refreshSearchWithLastSuccessfulCriteria(searchForm);
+}
+
+/**
+ * Affiche une modale qui permet de relancer l'actualisation de la liste.
+ * La modale reste ouverte après un nouvel échec et se ferme lorsque le rechargement réussit.
+ *
+ * @param   {HTMLTableElement|null} table   Tableau dont les résultats doivent être actualisés.
+ * @param   {string}                message Explication affichée dans la modale.
+ * @returns {Promise<void>}
+ */
+async function showSearchRefreshRetryDialog(table, message) {
+    await XalDialog.show({
+        title: 'Liste non actualisée',
+        content: message,
+        contentClasses: [XalConstants.cssClasses.text.justify],
+        variant: 'warning',
+        preset: 'confirmation',
+        buttonOverrides: {
+            confirm: {
+                title: 'Réessayer',
+                closeOnClick: false,
+                action: async ({ close }) => {
+                    const isSearchRefreshed = await refreshIntegrationRequestSearch(table);
+
+                    if (isSearchRefreshed) {
+                        close();
+                        return;
+                    }
+
+                    XalToast.warning('La liste n’a toujours pas pu être actualisée. Vous pouvez réessayer.');
+                },
+            },
+        },
+    });
 }
 
 /**
