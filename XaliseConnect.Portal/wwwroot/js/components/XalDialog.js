@@ -95,6 +95,7 @@ export const XalDialog = (() => {
     let isClosing                   = false;
     let activeHeaderClasses         = [];
     let activeTitleClasses          = [];
+    let activeContentClasses        = [];
     let activeCloseButtonClasses    = [];
 
     /**
@@ -414,6 +415,7 @@ export const XalDialog = (() => {
      * @param   {'success'|'danger'|'info'|'warning'}                   [options.variant]               Variante de couleur de l'en-tête et de l'icône de fermeture.
      * @param   {string[]}                                              [options.headerClasses=[]]      Classes personnalisées de l'en-tête, incompatibles avec `variant`.
      * @param   {string[]}                                              [options.titleClasses=[]]       Classes personnalisées du titre.
+     * @param   {string[]}                                              [options.contentClasses=[]]     Classes personnalisées du corps.
      * @param   {'confirmation'|'deleteConfirmation'|'information'}     [options.preset]                Preset de boutons à afficher.
      * @param   {Object}                                                [options.buttonOverrides={}]    Surcharge des boutons du preset, indexées par leur nom.
      * @param   {Object[]}                                              [options.buttons=[]]            Boutons personnalisés, incompatibles avec `preset`.
@@ -444,6 +446,7 @@ export const XalDialog = (() => {
             variant         = null,
             headerClasses   = null,
             titleClasses    = [],
+            contentClasses  = [],
             preset          = null,
             buttonOverrides = {},
             buttons         = [],
@@ -474,6 +477,10 @@ export const XalDialog = (() => {
 
         if (!Array.isArray(titleClasses)) {
             throw new TypeError('[XalDialog] Le paramètre "titleClasses" doit être un tableau de classes CSS.');
+        }
+
+        if (!Array.isArray(contentClasses)) {
+            throw new TypeError('[XalDialog] Le paramètre "contentClasses" doit être un tableau de classes CSS.');
         }
 
         const resolvedButtons   = resolveButtons(buttons, preset, buttonOverrides);
@@ -507,6 +514,12 @@ export const XalDialog = (() => {
             titleElement,
             activeTitleClasses,
             titleClasses
+        );
+
+        activeContentClasses = replaceClasses(
+            body,
+            activeContentClasses,
+            contentClasses
         );
 
         if (closeButton) {
