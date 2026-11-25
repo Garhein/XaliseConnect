@@ -1,4 +1,6 @@
-﻿/**
+﻿// prettier-ignore
+
+/**
  * Constantes DOM partagées par les composants JavaScript de l'application Xalise Connect.
  */
 export const XalConstants = Object.freeze({
@@ -41,7 +43,7 @@ export const XalConstants = Object.freeze({
             rangeMessage:                   'data-xal-range-message',
             recordId:                       'data-xal-record-id',
             recordLabel:                    'data-xal-record-label',
-            tableContainerActions :         'data-xal-table-container-actions',
+            tableContainerActions:          'data-xal-table-container-actions',
             tableContainerSelectionCount:   'data-xal-table-container-selection-count',
             tablePageSize:                  'data-xal-table-page-size',
             tablePage:                      'data-xal-table-page',
@@ -61,7 +63,6 @@ export const XalConstants = Object.freeze({
         toastTemplateFeedback: 'xal-id-toast-template-feedback',
 
         loader: Object.freeze({
-            navbar:                 'xal-id-loader-nav',
             overlay:                'xal-id-loader-overlay',
             placeholderTemplate:    'xal-id-loader-placeholder-template',
         }),
@@ -98,18 +99,18 @@ export const XalConstants = Object.freeze({
             togglePopover: '[data-bs-toggle="popover"]',
         }),
 
-        loader: Object.freeze({ 
+        loader: Object.freeze({
             overlayMessage: '.xal-loader-overlay__message',
             placeholder:    '.xal-loader-placeholder',
         }),
 
-        toast: Object.freeze({ 
-            container:       '.toast-container',
-            header:          '.toast-header',
-            xalToast:        '.xal-toast',
-            xalToastIcon:    '.xal-toast__icon',
-            xalToastLabel:   '.xal-toast__label',
-            xalToastMessage: '.xal-toast__message',
+        toast: Object.freeze({
+            container:          '.toast-container',
+            header:             '.toast-header',
+            xalToast:           '.xal-toast',
+            xalToastIcon:       '.xal-toast__icon',
+            xalToastLabel:      '.xal-toast__label',
+            xalToastMessage:    '.xal-toast__message',
         }),
 
         form: Object.freeze({
@@ -131,10 +132,10 @@ export const XalConstants = Object.freeze({
 
         table: Object.freeze({
             selection: Object.freeze({
-                selectable:                 '[data-xal-table-selectable]',
-                checkAll:                   '[data-xal-table-check-all]',
-                checkRow:                   'tbody [data-xal-table-check-row]',
-                actionNotDynamicState:      '.xal-table__actions--not-dynamic-state',
+                selectable:             '[data-xal-table-selectable]',
+                checkAll:               '[data-xal-table-check-all]',
+                checkRow:               'tbody [data-xal-table-check-row]',
+                actionNotDynamicState:  '.xal-table__actions--not-dynamic-state',
             }),
 
             sort: Object.freeze({
@@ -144,12 +145,12 @@ export const XalConstants = Object.freeze({
         }),
 
         modal: Object.freeze({
-            bootstrapClass:    '.modal-dialog',
-            xalHeader:         '.xal-modal__header',
-            xalTitle:          '.xal-modal__title',
-            xalBody:           '.xal-modal__body',
-            xalFooter:         '.xal-modal__footer',
-            xalCloseButton:    '.xal-modal__close-button',
+            bootstrapClass:     '.modal-dialog',
+            xalHeader:          '.xal-modal__header',
+            xalTitle:           '.xal-modal__title',
+            xalBody:            '.xal-modal__body',
+            xalFooter:          '.xal-modal__footer',
+            xalCloseButton:     '.xal-modal__close-button',
         }),
     }),
 
@@ -160,7 +161,7 @@ export const XalConstants = Object.freeze({
         loaderPlaceholderActive:    'xal-loader-placeholder--active',
         displayNone:                'd-none',
 
-        bootstrapIcons: Object.freeze({ 
+        bootstrapIcons: Object.freeze({
             arrowUp:                    'bi-arrow-up',
             arrowDown:                  'bi-arrow-down',
             arrowDownUp:                'bi-arrow-down-up',
@@ -175,12 +176,12 @@ export const XalConstants = Object.freeze({
             xLg:                        'bi-x-lg',
         }),
 
-        bootstrapTextBg: Object.freeze({ 
-            success: 'text-bg-success',
-            danger:  'text-bg-danger',
-            warning: 'text-bg-warning',
-            info:    'text-bg-info',
-            xalise:  'text-bg-xalise',
+        bootstrapTextBg: Object.freeze({
+            success:    'text-bg-success',
+            danger:     'text-bg-danger',
+            warning:    'text-bg-warning',
+            info:       'text-bg-info',
+            xalise:     'text-bg-xalise',
         }),
 
         bootstrapBgColor: Object.freeze({
@@ -215,17 +216,17 @@ export const XalConstants = Object.freeze({
             size: Object.freeze({
                 sm: 'btn-sm',
             }),
-            
-            closeWhite:             'btn-close-white',
-            primary:                'btn-primary',
-            danger:                 'btn-danger',
-            xalise:                 'btn-xalise',
-            outlineSecondary:       'btn-outline-secondary',
 
+            closeWhite:         'btn-close-white',
+            primary:            'btn-primary',
+            danger:             'btn-danger',
+            xalise:             'btn-xalise',
+            outlineSecondary:   'btn-outline-secondary',
         }),
 
         modal: Object.freeze({
             xalHeaderDefault: 'xal-modal__header--default',
+
             variant: Object.freeze({
                 success:    'success',
                 danger:     'danger',

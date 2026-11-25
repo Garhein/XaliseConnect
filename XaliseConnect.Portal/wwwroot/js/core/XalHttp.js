@@ -134,8 +134,9 @@ async function handleRequestError(error, configuration) {
 export const XalHttp = Object.freeze({
     /**
      * Envoie une requête HTTP et renvoie sa réponse après vérification du statut.
-     * Les loaders activés sont toujours arrêtés, y compris si la requête échoue. Chaque overlay
-     * obtient un jeton propre à la requête ; les messages simultanés sont affichés dans l'ordre d'activation.
+     * Les loaders activés sont toujours libérés, y compris si la requête échoue. Chaque requête
+     * obtient ses propres jetons de barre de navigation et d'overlay ; les messages simultanés
+     * de l'overlay sont affichés dans l'ordre d'activation.
      *
      * @param   {string|URL}                url                             URL de la ressource demandée.
      * @param   {RequestInit}               [fetchOptions={}]               Options natives de la requête Fetch.
@@ -154,12 +155,11 @@ export const XalHttp = Object.freeze({
     async fetch(url, fetchOptions = {}, indicators = {}) {
         const configuration = buildIndicatorConfiguration(indicators);
         const startedAt     = Date.now();
-        const loaderState   = { navStarted: false, overlayRelease: null, placeholderShown: false, };
+        const loaderState   = { navRelease: null, overlayRelease: null, placeholderShown: false, };
 
         try {
             if (configuration.nav) {
-                XalLoaderNav.start();
-                loaderState.navStarted = true;
+                loaderState.navRelease = XalLoaderNav.acquire();
             }
 
             if (configuration.overlay) {
@@ -218,8 +218,8 @@ export const XalHttp = Object.freeze({
                 loaderState.overlayRelease();
             }
 
-            if (loaderState.navStarted) {
-                XalLoaderNav.stop();
+            if (loaderState.navRelease) {
+                loaderState.navRelease();
             }
         }
     },
