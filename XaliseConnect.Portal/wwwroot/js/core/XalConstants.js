@@ -8,6 +8,7 @@ export const XalConstants = Object.freeze({
      * Noms des attributs ARIA.
      */
     ariaNames: Object.freeze({
+        busy:       'aria-busy',
         hidden:     'aria-hidden',
         label:      'aria-label',
         labelledBy: 'aria-labelledby',

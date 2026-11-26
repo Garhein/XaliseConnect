@@ -1,11 +1,13 @@
 ﻿import { XalConstants } from '../core/XalConstants.js';
 
+const MAIN_CONTENT_ELEMENT_ID           = 'xal-main-content';
 const LOADER_OVERLAY_ELEMENT_ID         = 'xal-id-loader-overlay';
+const LOADER_OVERLAY_STATUS_ELEMENT_ID  = 'xal-id-loader-overlay-status';
 const LOADER_OVERLAY_MESSAGE_SELECTOR   = '.xal-loader-overlay__message';
 
 /**
  * Overlay de chargement affiché lors de traitements longs.
- * 
+ *
  * Chaque traitement exécute `acquire()` et libère le jeton récupéré dans un bloc `finally`.
  * L'utilisation de jetons indépendants permet de gérer plusieurs traitements simultanés.
  * Un double appel de libération sur un même jeton n'a aucun effet, et l'overlay reste visible tant que tous les jetons n'ont pas été libérés.
@@ -34,26 +36,46 @@ export const XalLoaderOverlay = (() => {
     /**
      * Élément DOM du message.
      * Résolu lors de l'appel à `init()`.
-     * 
+     *
      * @type {HTMLElement|null}
      */
     let _messageElement = null;
 
     /**
+     * Région de statut annoncée aux technologies d'assistance.
+     * Résolue lors de l'appel à `init()`.
+     *
+     * @type {HTMLElement|null}
+     */
+    let _statusElement = null;
+
+    /**
+     * Région principale de l'application, marquée comme occupée pendant les traitements.
+     * Résolue lors de l'appel à `init()`.
+     *
+     * @type {HTMLElement|null}
+     */
+    let _mainContentElement = null;
+
+    /**
      * Indique si l'overlay est actuellement affiché.
-     * 
+     *
      * @type {boolean} `true` si l'overlay est affiché, sinon `false`.
      */
     let _isVisible = false;
 
     /**
      * Vérifie si les éléments DOM requis ont été résolus avant toute utilisation.
-     * 
+     *
      * @returns {void}
      * @throws {Error} Si `init()` n'a pas été appelé ou si l'un des éléments DOM est manquant.
      */
     const _throwIfNotInitialized = () => {
-        if (!_overlayElement || !_messageElement) {
+        if (!_overlayElement
+            || !_messageElement
+            || !_statusElement
+            || !_mainContentElement
+        ) {
             throw new Error(
                 "[XalLoaderOverlay] Appeler `init()` avant d'utiliser `acquire()` ou de mettre à jour le message d'attente.",
             );
@@ -61,16 +83,25 @@ export const XalLoaderOverlay = (() => {
     };
 
     /**
-     * Synchronise l'affichage de l'overlay et gère son attribut ARIA.
+     * Synchronise la visibilité de l'overlay.
      *
      * @param {boolean} isActive `true` pour afficher l'overlay, `false` pour le masquer.
      * @returns {void}
      */
-    const _update = (isActive) => {
+    const _updateVisibility = (isActive) => {
         _throwIfNotInitialized();
-
         _overlayElement.hidden = !isActive;
-        _overlayElement.setAttribute(XalConstants.ariaNames.hidden, String(!isActive));
+    };
+
+    /**
+     * Synchronise l'état occupé de la région principale.
+     *
+     * @param {boolean} isBusy `true` si la région principale est occupée, sinon `false`.
+     * @returns {void}
+     */
+    const _updateBusyState = (isBusy) => {
+        _throwIfNotInitialized();
+        _mainContentElement.setAttribute(XalConstants.ariaNames.busy, String(isBusy));
     };
 
     /**
@@ -84,10 +115,12 @@ export const XalLoaderOverlay = (() => {
         const activeMessage      = hasActiveRequests ? firstActiveRequest.value : '';
 
         _setMessage(activeMessage);
+        _setStatusMessage(activeMessage);
 
         if (_isVisible !== hasActiveRequests) {
             _isVisible = hasActiveRequests;
-            _update(hasActiveRequests);
+            _updateVisibility(hasActiveRequests);
+            _updateBusyState(hasActiveRequests);
         }
     };
 
@@ -102,6 +135,18 @@ export const XalLoaderOverlay = (() => {
         _messageElement.textContent = message;
     };
 
+    /**
+     * Actualise le message de la région de statut accessible.
+     *
+     * @param {string} [message=''] Message à annoncer aux technologies d'assistance.
+     * @returns {void}
+     */
+    const _setStatusMessage = (message = '') => {
+        if (_statusElement.textContent !== message) {
+            _statusElement.textContent = message;
+        }
+    };
+
     return Object.freeze({
         /**
          * Initialise le module en résolvant les éléments DOM requis et synchronise son état initial.
@@ -113,31 +158,48 @@ export const XalLoaderOverlay = (() => {
         init() {
             if (_overlayElement) return;
 
-            const overlayElt = document.getElementById(LOADER_OVERLAY_ELEMENT_ID);
-            const messageElt = overlayElt ? overlayElt.querySelector(LOADER_OVERLAY_MESSAGE_SELECTOR) : null;
+            const overlayElt     = document.getElementById(LOADER_OVERLAY_ELEMENT_ID);
+            const messageElt     = overlayElt ? overlayElt.querySelector(LOADER_OVERLAY_MESSAGE_SELECTOR) : null;
+            const statusElt      = document.getElementById(LOADER_OVERLAY_STATUS_ELEMENT_ID);
+            const mainContentElt = document.getElementById(MAIN_CONTENT_ELEMENT_ID);
 
             if (!overlayElt) {
                 throw new Error(
-                    `[XalLoaderOverlay] Le loader de page est absent du DOM (identifiant : #${LOADER_OVERLAY_ELEMENT_ID}).`
+                    `[XalLoaderOverlay] Le loader de page est absent du DOM (identifiant : #${LOADER_OVERLAY_ELEMENT_ID}).`,
                 );
             }
 
             if (!messageElt) {
                 throw new Error(
-                    `[XalLoaderOverlay] Le message associé au loader de page est absent du DOM (sélecteur : ${LOADER_OVERLAY_MESSAGE_SELECTOR}).`
+                    `[XalLoaderOverlay] Le message associé au loader de page est absent du DOM (sélecteur : ${LOADER_OVERLAY_MESSAGE_SELECTOR}).`,
                 );
             }
 
-            _overlayElement = overlayElt;
-            _messageElement = messageElt;
-            _isVisible      = false;
+            if (!statusElt) {
+                throw new Error(
+                    `[XalLoaderOverlay] La région d'annonce du loader de page est absente du DOM (identifiant : #${LOADER_OVERLAY_STATUS_ELEMENT_ID}).`,
+                );
+            }
 
-            _update(false);
+            if (!mainContentElt) {
+                throw new Error(
+                    `[XalLoaderOverlay] La région principale de l'application est absente du DOM (identifiant : #${MAIN_CONTENT_ELEMENT_ID}).`,
+                );
+            }
+
+            _overlayElement     = overlayElt;
+            _messageElement     = messageElt;
+            _statusElement      = statusElt;
+            _mainContentElement = mainContentElt;
+            _isVisible          = false;
+
+            _updateVisibility(false);
+            _updateBusyState(false);
         },
 
         /**
          * Récupère un jeton et associe un message au traitement correspondant.
-         * 
+         *
          * L'overlay affiche le message du traitement actif le plus ancien.
          * Lorsqu'un traitement se termine, le message du traitement actif suivant prend sa place.
          *
@@ -148,8 +210,8 @@ export const XalLoaderOverlay = (() => {
         acquire(message = '') {
             _throwIfNotInitialized();
 
-            let isReleased      = false;
-            const requestToken  = Symbol('XalLoaderOverlay token request');
+            let isReleased = false;
+            const requestToken = Symbol('XalLoaderOverlay token request');
             _activeTokens.set(requestToken, message);
 
             _synchronizeActiveRequests();
@@ -168,10 +230,10 @@ export const XalLoaderOverlay = (() => {
 
         /**
          * Actualise le message du traitement actif le plus ancien sans changer l'état de visibilité de l'overlay.
-         * 
+         *
          * Le message du traitement suivant s'affiche lorsque le traitement courant est libéré.
          * En l'absence de traitement actif, le texte est modifié pendant que l'overlay reste masqué.
-         * 
+         *
          * @param {string} [message=''] Message à afficher dans l'overlay.
          * @returns {void}
          * @throws {Error} Si l'un des éléments du DOM n'a pas été initialisé.
@@ -188,6 +250,7 @@ export const XalLoaderOverlay = (() => {
             }
 
             _setMessage(message);
+            _setStatusMessage('');
         },
     });
 })();
