@@ -38,7 +38,7 @@ export const XalLoaderNav = (() => {
     const _isActive = () => _activeTokens.size > 0;
 
     /**
-     * Vérifie si l'élément DOM de la barre de progression a été résolu avant toute utilisation.
+     * Vérifie si l'élément DOM requis a été résolu avant toute utilisation.
      *
      * @returns {void}
      * @throws {Error} Si `init()` n'a pas été appelé ou si l'élément DOM est manquant.

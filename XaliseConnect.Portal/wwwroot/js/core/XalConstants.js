@@ -63,8 +63,7 @@ export const XalConstants = Object.freeze({
         toastTemplateFeedback: 'xal-id-toast-template-feedback',
 
         loader: Object.freeze({
-            overlay:                'xal-id-loader-overlay',
-            placeholderTemplate:    'xal-id-loader-placeholder-template',
+            placeholderTemplate: 'xal-id-loader-placeholder-template',
         }),
 
         otp: Object.freeze({
@@ -100,8 +99,7 @@ export const XalConstants = Object.freeze({
         }),
 
         loader: Object.freeze({
-            overlayMessage: '.xal-loader-overlay__message',
-            placeholder:    '.xal-loader-placeholder',
+            placeholder: '.xal-loader-placeholder',
         }),
 
         toast: Object.freeze({

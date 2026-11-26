@@ -164,7 +164,7 @@ export const XalHttp = Object.freeze({
 
             if (configuration.overlay) {
                 const overlayMessage = typeof configuration.overlay === 'string' ? configuration.overlay : '';
-                loaderState.overlayRelease = XalLoaderOverlay.show(overlayMessage);
+                loaderState.overlayRelease = XalLoaderOverlay.acquire(overlayMessage);
             }
 
             if (configuration.placeholder) {

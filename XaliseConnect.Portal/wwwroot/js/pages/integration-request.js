@@ -484,7 +484,7 @@ async function showIntegrationFailure(trigger) {
 
 async function replayIntegrationRequest(recordId) {
     // TODO : appeler le serveur, mettre à jour la demande et signaler le résultat.
-    const releaseOverlay = XalLoaderOverlay.show('Enregistrement en cours...');
+    const releaseOverlay = XalLoaderOverlay.acquire('Enregistrement en cours...');
 
     try {
         await new Promise((resolve) => setTimeout(resolve, 5000));

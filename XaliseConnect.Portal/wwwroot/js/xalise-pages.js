@@ -1,4 +1,4 @@
-import { initBootstrapFormValidation } from './core/XalFormValidation.js';
+﻿import { initBootstrapFormValidation } from './core/XalFormValidation.js';
 import { initFormClearButtons } from './core/XalForm.js';
 import { XalToast } from './components/XalToast.js';
 import { XalLoaderNav } from './loaders/XalLoaderNav.js';
