@@ -1,191 +1,310 @@
-import { XalConstants } from '../core/XalConstants.js';
+﻿const LOADER_PLACEHOLDER_TEMPLATE_ID = 'xal-id-loader-placeholder-template';
+const LOADER_PLACEHOLDER_SELECTOR    = '.xal-loader-placeholder';
 
 /**
- * Blocs visuels temporaires affichés dans une zone cible pendant le chargement de données asynchrones.
- * Le contenu réel est injecté dynamiquement après chargement.
+ * Placeholder visuel affiché dans une zone cible pendant le chargement de données asynchrones.
  *
- * Le composant repose sur un template HTML existant et permet plusieurs instances simultanées sur différentes zones.
+ * Chaque traitement exécute `acquire()` et libère le jeton récupéré dans un bloc `finally`.
+ * Un double appel de libération sur un même jeton n'a aucun effet.
+ * Le placeholder reste présent tant que tous les jetons n'ont pas été libérés.
  *
- * @requires XalConstants
+ * @public
  * @namespace XalLoaderPlaceholder
  */
 export const XalLoaderPlaceholder = (() => {
     /**
-     * Élément DOM du template HTML, résolu par `init()`.
+     * États des cibles qui possèdent au moins un placeholder actif.
+     *
+     * @type {WeakMap<HTMLElement, Object>}
+     */
+    const _targetStates = new WeakMap();
+
+    /**
+     * Modes d'insertion du placeholder supportés.
+     *
+     * @type {Readonly<{ PREPEND: 'prepend', REPLACE: 'replace', APPEND: 'append' }>}
+     */
+    const INSERTION_MODES = Object.freeze({
+        PREPEND: 'prepend',
+        REPLACE: 'replace',
+        APPEND: 'append',
+    });
+
+    /**
+     * Ensemble des modes d'insertion valides.
+     *
+     * @type {Set<'prepend'|'replace'|'append'>}
+     */
+    const _validModes = new Set(Object.values(INSERTION_MODES));
+
+    /**
+     * Normalise le mode d'insertion ou retourne le mode par défaut lorsqu'il est inconnu.
+     *
+     * @param {unknown} mode Valeur du mode à normaliser.
+     * @returns {'prepend'|'replace'|'append'} Mode d'insertion pris en charge.
+     */
+    const _normalizeInsertionMode = (mode) => {
+        const normalizedMode = typeof mode === 'string'
+            ? mode.toLowerCase()
+            : mode;
+
+        if (_validModes.has(normalizedMode)) {
+            return normalizedMode;
+        }
+
+        console.warn(
+            `[XalLoaderPlaceholder] Mode d'insertion "${normalizedMode}" non valide ; le mode "${INSERTION_MODES.PREPEND}" sera utilisé.`,
+        );
+
+        return INSERTION_MODES.PREPEND;
+    };
+
+    /**
+     * Template HTML des placeholders.
+     * Résolu lors de l'appel à `init()`.
      *
      * @type {HTMLTemplateElement|null}
      */
     let _templateElement = null;
 
     /**
-     * Résout une cible en élément DOM, à partir d’un sélecteur CSS ou d’un élément HTML.
+     * Retourne l'élément cible fourni ou recherche le premier élément correspondant au sélecteur CSS.
      *
-     * @param {string|HTMLElement} target Sélecteur CSS ou élément DOM.
-     * @returns {HTMLElement|null} Élément résolu ou `null` si introuvable.
+     * @param {string|HTMLElement} target Sélecteur CSS recherché dans le document ou élément HTML à utiliser directement.
+     * @returns {HTMLElement|null} Élément HTML correspondant, ou `null` si la cible est absente ou n'est pas un élément HTML.
+     * @throws {DOMException} Si le sélecteur CSS est invalide (nom de l'exception : `SyntaxError`).
      */
-    const _resolveTarget = (target) => {
-        if (target instanceof HTMLElement) return target;
+    const _resolveTargetElement = (target) => {
+        if (target instanceof HTMLElement) {
+            return target;
+        }
 
         if (typeof target === 'string') {
-            const el = document.querySelector(target);
-            return el instanceof HTMLElement ? el : null;
+            const targetElement = document.querySelector(target);
+            return targetElement instanceof HTMLElement ? targetElement : null;
         }
 
         return null;
     };
 
     /**
-     * Indique si un placeholder est présent dans un élément cible.
+     * Clone l'élément racine du template sans modifier le template d'origine.
      *
-     * @param {HTMLElement} el Élément DOM cible.
-     * @returns {boolean} `true` si un placeholder est présent, sinon `false`.
+     * @returns {HTMLElement} Clone prêt à être inséré dans une cible.
+     * @throws {Error} Si le template ne contient plus l'élément racine attendu.
      */
-    const _isInserted = (el) => {
-        return el.querySelector(XalConstants.cssQueries.loader.placeholder) !== null;
+    const _createPlaceholderElement = () => {
+        const templateRoot = _templateElement.content.firstElementChild;
+
+        if (!(templateRoot instanceof HTMLElement) || !templateRoot.matches(LOADER_PLACEHOLDER_SELECTOR)) {
+            throw new Error(
+                `[XalLoaderPlaceholder] L'élément racine du template est absent ou ne correspond pas au sélecteur attendu (${LOADER_PLACEHOLDER_SELECTOR}).`,
+            );
+        }
+
+        const placeholderElement = document.importNode(templateRoot, true);
+
+        if (!(placeholderElement instanceof HTMLElement)) {
+            throw new Error(
+                "[XalLoaderPlaceholder] Le clone du template n'est pas un élément HTML.",
+            );
+        }
+
+        return placeholderElement;
     };
 
     /**
-     * Modes d’insertion supportés.
+     * Insère le placeholder dans la cible selon la stratégie demandée.
+     * En mode `replace`, les noeuds initiaux sont déplacés dans un fragment afin de pouvoir, si besoin, les restaurer à la libération.
      *
-     * Définit les stratégies d’injection dans la zone cible :
-     * - `PREPEND`  → insère le placeholder au début sans modifier le contenu existant
-     * - `REPLACE`  → remplace entièrement le contenu de la zone cible
-     * - `APPEND`   → ajoute le placeholder à la fin de la zone cible
-     *
-     * Utilisé pour valider et normaliser l’option `mode` passée à `show()`.
-     *
-     * @type {Readonly<{ PREPEND: 'prepend', REPLACE: 'replace', APPEND: 'append' }>}
+     * @param {HTMLElement} target Élément dans lequel insérer le placeholder.
+     * @param {'prepend'|'replace'|'append'} mode Stratégie d'insertion du placeholder.
+     * @param {HTMLElement} placeholderElement Placeholder à insérer dans la cible.
+     * @returns {DocumentFragment|null} Noeuds initiaux déplacés en mode `replace`, ou `null` pour les autres modes.
+     * @throws {Error} Si `mode` ne correspond à aucune stratégie d'insertion prise en charge.
      */
-    const INSERTION_MODES = Object.freeze({
-        PREPEND:    'prepend',
-        REPLACE:    'replace',
-        APPEND:     'append',
-    });
+    const _insertPlaceholder = (target, mode, placeholderElement) => {
+        switch (mode) {
+            case INSERTION_MODES.PREPEND: {
+                target.prepend(placeholderElement);
+                return null;
+            }
+            case INSERTION_MODES.REPLACE: {
+                const originalContent = document.createDocumentFragment();
 
-    /**
-     * Ensemble des modes d’insertion valides.
-     *
-     * Permet de vérifier rapidement si la valeur fournie pour l’option `mode` est supportée par le module.
-     * Construit à partir de `INSERTION_MODES` afin de garantir la cohérence entre la définition des modes et leur validation.
-     *
-     * @private
-     *
-     * @type {Readonly<Set<'prepend'|'replace'|'append'>>}
-     */
-    const VALID_MODES = new Set(Object.values(INSERTION_MODES));
+                while (target.firstChild) {
+                    originalContent.appendChild(target.firstChild);
+                }
 
-    /**
-     * Clone le template et l’insère dans la zone cible.
-     *
-     * @param {HTMLElement} el Élément cible.
-     * @param {string} mode Mode d’insertion.
-     */
-    const _insertPlaceholder = (el, mode) => {
-        const fragment = document.importNode(_templateElement.content, true);
+                target.replaceChildren(placeholderElement);
 
-        if (mode === INSERTION_MODES.REPLACE) {
-            el.replaceChildren(fragment);
-        } else if (mode === INSERTION_MODES.APPEND) {
-            el.appendChild(fragment);
-        } else {
-            el.prepend(fragment);
+                return originalContent;
+            }
+            case INSERTION_MODES.APPEND: {
+                target.append(placeholderElement);
+                return null;
+            }
+            default: {
+                throw new Error(
+                    `[XalLoaderPlaceholder] Le mode d'insertion "${mode}" n'est pas pris en charge.`,
+                );
+            }
         }
     };
 
     /**
-     * Vérifie si le template HTML a été initialisé avant toute utilisation.
-     * 
-     * @throws {Error} Si `init()` n’a pas été appelé ou si le template HTML n'est pas présent dans le DOM.
+     * Vérifie si l'élément DOM requis a été résolu avant son utilisation.
+     *
+     * @returns {void}
+     * @throws {Error} Si `init()` n'a pas été appelé ou si l'élément DOM est manquant.
      */
     const _throwIfNotInitialized = () => {
         if (!_templateElement) {
-            throw new Error('[XalLoaderPlaceholder] Veuillez exécuter `init()` avant `show()`.');
+            throw new Error(
+                "[XalLoaderPlaceholder] Appelez `init()` avant d'utiliser `acquire()`.",
+            );
         }
+    };
+
+    /**
+     * État partagé par les traitements qui utilisent la même cible.
+     *
+     * @typedef  {Object} PlaceholderTargetState
+     * @property {Set<symbol>}                  activeTokens        Jetons des traitements actifs.
+     * @property {'prepend'|'replace'|'append'} mode                Mode utilisé pour insérer le placeholder.
+     * @property {DocumentFragment|null}        originalContent     Contenu initial conservé en mode `replace`.
+     * @property {HTMLElement}                  placeholderElement  Élément placeholder associé à la cible.
+     */
+
+    /**
+     * Crée la fonction idempotente qui libère le jeton d'un traitement.
+     *
+     * Le placeholder reste en place tant que d'autres jetons sont actifs pour la cible.
+     * À la dernière libération, le contenu initial est restauré en mode `replace` si le placeholder est le seul noeud de la cible ; sinon, seul ce placeholder est retiré.
+     *
+     * @param {HTMLElement} targetElement Élément associé au traitement.
+     * @param {PlaceholderTargetState} targetState État partagé des traitements actifs sur l'élément.
+     * @param {symbol} requestToken Jeton du traitement à libérer.
+     * @returns {() => void} Fonction qui libère le jeton une seule fois.
+     */
+    const _createReleaseFunction = (targetElement, targetState, requestToken) => {
+        let isReleased = false;
+
+        return () => {
+            if (isReleased) {
+                return;
+            }
+
+            isReleased = true;
+            targetState.activeTokens.delete(requestToken);
+
+            if (targetState.activeTokens.size > 0) {
+                return;
+            }
+
+            _targetStates.delete(targetElement);
+
+            const shouldRestoreOriginalContent =
+                targetState.mode === INSERTION_MODES.REPLACE
+                && targetState.originalContent !== null
+                && targetState.placeholderElement.parentElement === targetElement
+                && targetElement.childNodes.length === 1
+                && targetElement.firstChild === targetState.placeholderElement;
+
+            if (shouldRestoreOriginalContent) {
+                targetElement.replaceChildren(targetState.originalContent);
+                return;
+            }
+
+            targetState.placeholderElement.remove();
+        };
     };
 
     return Object.freeze({
         INSERTION_MODES,
 
         /**
-         * Initialise le module en résolvant le template HTML.
-         * Les appels suivants sont sans effet.
+         * Recherche et valide le template HTML requis par le module.
+         * Conserve sa référence pour les appels suivants ; une initialisation répétée est sans effet.
          *
-         * @throws {Error} Si le template est introuvable dans le DOM.
+         * @returns {void}
+         * @throws {Error} Si le template est absent, n'est pas un élément `<template>`, ou ne contient pas un unique élément racine HTML attendu.
          */
         init() {
-            if (_templateElement) return;
-
-            const templateId    = XalConstants.elementIds.loader.placeholderTemplate;
-            const templateElt   = document.getElementById(templateId);
-
-            if (!templateElt) {
-                throw new Error(`[XalLoaderPlaceholder] Template "${templateId}" introuvable dans le DOM.`);
+            if (_templateElement) {
+                return;
             }
 
-            _templateElement = templateElt;
+            const templateElement = document.getElementById(LOADER_PLACEHOLDER_TEMPLATE_ID);
+
+            if (!(templateElement instanceof HTMLTemplateElement)) {
+                throw new Error(
+                    `[XalLoaderPlaceholder] Le template du loader est absent du DOM ou n'est pas un élément <template> (identifiant : #${LOADER_PLACEHOLDER_TEMPLATE_ID}).`,
+                );
+            }
+
+            const templateRoot = templateElement.content.firstElementChild;
+
+            if (templateElement.content.children.length !== 1 || !(templateRoot instanceof HTMLElement) || !templateRoot.matches(LOADER_PLACEHOLDER_SELECTOR)) {
+                throw new Error(
+                    `[XalLoaderPlaceholder] Le template du loader doit contenir un unique élément racine HTML correspondant au sélecteur "${LOADER_PLACEHOLDER_SELECTOR}".`,
+                );
+            }
+
+            _templateElement = templateElement;
         },
-        
+
         /**
-         * Affiche un placeholder dans la zone cible.
+         * Acquiert un jeton de chargement et affiche le placeholder dans la cible.
          *
-         * Aucun effet si :
-         * - la cible est introuvable
-         * - un placeholder est déjà présent (idempotence), uniquement si le mode est `prepend` ou `append`.
+         * Le premier appel actif insère le placeholder et les appels suivants sur la même cible le partagent.
+         * Le placeholder reste affiché jusqu'à la libération du dernier jeton, puis il est retiré.
+         * En mode `replace`, le contenu initial est restauré si le placeholder est encore seul dans la cible.
          *
-         * @public
-         *
-         * @param {string|HTMLElement}  target                              Sélecteur CSS ou élément cible.
-         * @param {Object}              [options={}]                        Options d’affichage.
-         * @param {'prepend'|'replace'|'append'} [options.mode='prepend']   Mode d’insertion du placeholder :
-         *                                                                  - `prepend` (par défaut) : insère le placeholder au début sans modifier le contenu existant.
-         *                                                                  - `replace` : remplace tout le contenu de la zone par le placeholder.
-         *                                                                  - `append` : ajoute le placeholder à la fin de la zone cible.
+         * @param {string|HTMLElement} target Sélecteur CSS de la cible ou élément HTML.
+         * @param {Object} [options={}] Options d'insertion.
+         * @param {'prepend'|'replace'|'append'} [options.mode='prepend'] Position du placeholder. Une valeur non prise en charge utilise `prepend`.
+         * @returns {() => void} Fonction idempotente qui libère le jeton ; sans effet si la cible est introuvable.
+         * @throws {Error} Si `init()` n'a pas été appelé.
+         * @throws {DOMException} Si `target` est un sélecteur CSS invalide (nom : `SyntaxError`).
          */
-        show(target, { mode = INSERTION_MODES.PREPEND } = {}) {
+        acquire(target, { mode = INSERTION_MODES.PREPEND } = {}) {
             _throwIfNotInitialized();
-            
-            const el = _resolveTarget(target);
-            
-            if (!el) {
-                console.warn('[XalLoaderPlaceholder] Cible introuvable : ', target);
-                return;
+
+            const targetElement = _resolveTargetElement(target);
+
+            if (!targetElement) {
+                console.warn('[XalLoaderPlaceholder] Cible introuvable :', target);
+                return () => {};
             }
 
-            if (typeof mode === 'string') {
-                mode = mode.toLowerCase();
+            const normalizedMode = _normalizeInsertionMode(mode);
+            let targetState      = _targetStates.get(targetElement);
+
+            if (!targetState) {
+                const placeholderElement = _createPlaceholderElement();
+                const originalContent    = _insertPlaceholder(targetElement, normalizedMode, placeholderElement);
+
+                targetState = {
+                    activeTokens: new Set(),
+                    mode: normalizedMode,
+                    originalContent,
+                    placeholderElement,
+                };
+
+                _targetStates.set(targetElement, targetState);
+            }
+            else if (targetState.mode !== normalizedMode) {
+                console.warn(
+                    `[XalLoaderPlaceholder] La cible possède déjà un placeholder en mode "${targetState.mode}" ; le mode "${normalizedMode}" sera ignoré jusqu'à sa libération.`,
+                );
             }
 
-            if (!VALID_MODES.has(mode)) {
-                console.warn(`[XalLoaderPlaceholder] Mode d'insertion "${mode}" non valide, fallback sur "prepend".`);
-                mode = INSERTION_MODES.PREPEND;
-            }
+            const requestToken = Symbol('XalLoaderPlaceholder token request');
 
-            if (mode !== INSERTION_MODES.REPLACE && _isInserted(el)) return;
+            targetState.activeTokens.add(requestToken);
 
-            _insertPlaceholder(el, mode);
-
-            el.classList.add(XalConstants.cssClasses.loaderPlaceholderActive);
-        },
-
-        /**
-         * Supprime tous les placeholders présents dans la cible (même multiples) et
-         * nettoie l’état visuel associé (classe CSS).
-         *
-         * Aucun effet si la cible est introuvable ou si aucun placeholder n’est présent.
-         * @param {string|HTMLElement} target Sélecteur CSS ou élément cible.
-         */
-        hide(target) {
-            const el = _resolveTarget(target);
-
-            if (!el) {
-                console.warn('[XalLoaderPlaceholder] Cible introuvable : ', target);
-                return;
-            }
-
-            el.querySelectorAll(XalConstants.cssQueries.loader.placeholder)
-              .forEach(p => p.remove());
-
-            el.classList.remove(XalConstants.cssClasses.loaderPlaceholderActive);
+            return _createReleaseFunction(targetElement, targetState, requestToken);
         },
     });
 })();

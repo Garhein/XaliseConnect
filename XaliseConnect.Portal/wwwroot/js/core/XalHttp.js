@@ -3,7 +3,8 @@ import { XalLoaderNav } from '../loaders/XalLoaderNav.js';
 import { XalLoaderOverlay } from '../loaders/XalLoaderOverlay.js';
 import { XalLoaderPlaceholder } from '../loaders/XalLoaderPlaceholder.js';
 
-const DEFAULT_NETWORK_ERROR_MESSAGE = 'Une erreur réseau est survenue. Veuillez réessayer.';
+const DEFAULT_NETWORK_ERROR_MESSAGE =
+    'Une erreur réseau est survenue. Veuillez réessayer.';
 
 const DEFAULT_ERROR_MESSAGES = Object.freeze({
     400: 'Requête invalide.',
@@ -59,14 +60,17 @@ async function extractErrorMessage(response) {
 
         if (contentType.includes('application/json')) {
             const responseBody = await response.json();
-            return responseBody.message ?? responseBody.error ?? JSON.stringify(responseBody);
+            return (
+                responseBody.message ??
+                responseBody.error ??
+                JSON.stringify(responseBody)
+            );
         }
 
         const responseText = (await response.text()).trim();
 
         return responseText.startsWith('<') ? '' : responseText;
-    }
-    catch {
+    } catch {
         return '';
     }
 }
@@ -98,9 +102,11 @@ async function handleRequestError(error, configuration) {
     if (typeof configuration.onError === 'function') {
         try {
             await configuration.onError(error);
-        }
-        catch (callbackError) {
-            console.error('[XalHttp] Le callback de gestion des erreurs a échoué.', callbackError);
+        } catch (callbackError) {
+            console.error(
+                '[XalHttp] Le callback de gestion des erreurs a échoué.',
+                callbackError,
+            );
         }
 
         return;
@@ -108,15 +114,15 @@ async function handleRequestError(error, configuration) {
 
     if (error instanceof Response) {
         const extractedMessage = await extractErrorMessage(error.clone());
-        const message = configuration.errorMessages[error.status]
-            ?? (extractedMessage || null)
-            ?? DEFAULT_ERROR_MESSAGES[error.status]
-            ?? `Erreur ${error.status} : ${error.statusText || 'Une erreur est survenue.'}`;
+        const message =
+            configuration.errorMessages[error.status] ??
+            (extractedMessage || null) ??
+            DEFAULT_ERROR_MESSAGES[error.status] ??
+            `Erreur ${error.status} : ${error.statusText || 'Une erreur est survenue.'}`;
 
         if (error.status === 409) {
             XalToast.warning(message);
-        }
-        else {
+        } else {
             XalToast.error(message);
         }
 
@@ -154,8 +160,12 @@ export const XalHttp = Object.freeze({
      */
     async fetch(url, fetchOptions = {}, indicators = {}) {
         const configuration = buildIndicatorConfiguration(indicators);
-        const startedAt     = Date.now();
-        const loaderState   = { navRelease: null, overlayRelease: null, placeholderShown: false, };
+        const startedAt = Date.now();
+        const loaderState = {
+            navRelease: null,
+            overlayRelease: null,
+            placeholderRelease: null,
+        };
 
         try {
             if (configuration.nav) {
@@ -163,19 +173,21 @@ export const XalHttp = Object.freeze({
             }
 
             if (configuration.overlay) {
-                const overlayMessage = typeof configuration.overlay === 'string' ? configuration.overlay : '';
-                loaderState.overlayRelease = XalLoaderOverlay.acquire(overlayMessage);
+                const overlayMessage =
+                    typeof configuration.overlay === 'string'
+                        ? configuration.overlay
+                        : '';
+                loaderState.overlayRelease =
+                    XalLoaderOverlay.acquire(overlayMessage);
             }
 
             if (configuration.placeholder) {
-                XalLoaderPlaceholder.show(
+                loaderState.placeholderRelease = XalLoaderPlaceholder.acquire(
                     configuration.placeholder.target,
                     {
                         mode: configuration.placeholder.mode,
-                    }
+                    },
                 );
-
-                loaderState.placeholderShown = true;
             }
 
             const response = await window.fetch(url, fetchOptions);
@@ -186,12 +198,14 @@ export const XalHttp = Object.freeze({
             }
 
             if (typeof configuration.onSuccess === 'function') {
-                await configuration.onSuccess(response.clone(), await parseResponse(response.clone()));
+                await configuration.onSuccess(
+                    response.clone(),
+                    await parseResponse(response.clone()),
+                );
             }
 
             return response;
-        }
-        catch (error) {
+        } catch (error) {
             if (error instanceof Response) {
                 throw error;
             }
@@ -202,16 +216,18 @@ export const XalHttp = Object.freeze({
 
             await handleRequestError(error, configuration);
             throw error;
-        }
-        finally {
-            const remainingDuration = configuration.minDuration - (Date.now() - startedAt);
+        } finally {
+            const remainingDuration =
+                configuration.minDuration - (Date.now() - startedAt);
 
             if (remainingDuration > 0) {
-                await new Promise((resolve) => setTimeout(resolve, remainingDuration));
+                await new Promise((resolve) =>
+                    setTimeout(resolve, remainingDuration),
+                );
             }
 
-            if (loaderState.placeholderShown) {
-                XalLoaderPlaceholder.hide(configuration.placeholder.target);
+            if (loaderState.placeholderRelease) {
+                loaderState.placeholderRelease();
             }
 
             if (loaderState.overlayRelease) {

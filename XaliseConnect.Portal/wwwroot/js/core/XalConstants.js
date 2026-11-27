@@ -1,6 +1,4 @@
-﻿// prettier-ignore
-
-/**
+﻿/**
  * Constantes DOM partagées par les composants JavaScript de l'application Xalise Connect.
  */
 export const XalConstants = Object.freeze({
@@ -63,10 +61,6 @@ export const XalConstants = Object.freeze({
     elementIds: Object.freeze({
         toastTemplateFeedback: 'xal-id-toast-template-feedback',
 
-        loader: Object.freeze({
-            placeholderTemplate: 'xal-id-loader-placeholder-template',
-        }),
-
         otp: Object.freeze({
             countdownTimer:         'xal-id-otp-countdown-timer',
             countdownProgress:      'xal-id-otp-countdown-progress',
@@ -97,10 +91,6 @@ export const XalConstants = Object.freeze({
 
         bootstrap: Object.freeze({
             togglePopover: '[data-bs-toggle="popover"]',
-        }),
-
-        loader: Object.freeze({
-            placeholder: '.xal-loader-placeholder',
         }),
 
         toast: Object.freeze({
@@ -157,8 +147,7 @@ export const XalConstants = Object.freeze({
      * Classes CSS ajoutées ou supprimées dynamiquement via `classList`.
      */
     cssClasses: Object.freeze({
-        loaderPlaceholderActive:    'xal-loader-placeholder--active',
-        displayNone:                'd-none',
+        displayNone: 'd-none',
 
         bootstrapIcons: Object.freeze({
             arrowUp:                    'bi-arrow-up',
