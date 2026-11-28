@@ -34,19 +34,19 @@ export const XalDialog = (() => {
      * Les variantes à fond sombre utilisent une croix blanche pour conserver un contraste suffisant.
      */
     const VARIANTS = Object.freeze({
-        success: {
+        [XalConstants.cssClasses.bootstrapVariant.success]: {
             headerClass:        XalConstants.cssClasses.bootstrapTextBg.success,
             closeButtonClasses: [XalConstants.cssClasses.bootstrapBtn.closeWhite],
         },
-        danger: {
+        [XalConstants.cssClasses.bootstrapVariant.danger]: {
             headerClass:        XalConstants.cssClasses.bootstrapTextBg.danger,
             closeButtonClasses: [XalConstants.cssClasses.bootstrapBtn.closeWhite],
         },
-        info: {
+        [XalConstants.cssClasses.bootstrapVariant.info]: {
             headerClass:        XalConstants.cssClasses.bootstrapTextBg.info,
             closeButtonClasses: [],
         },
-        warning: {
+        [XalConstants.cssClasses.bootstrapVariant.warning]: {
             headerClass:        XalConstants.cssClasses.bootstrapTextBg.warning,
             closeButtonClasses: [],
         },

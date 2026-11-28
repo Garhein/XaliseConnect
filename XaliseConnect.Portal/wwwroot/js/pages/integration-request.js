@@ -62,7 +62,7 @@ async function confirmDelete(trigger) {
         dismissible: false,
         showCloseButton: false,
         preset: 'deleteConfirmation',
-        variant: XalConstants.cssClasses.modal.variant.danger,
+        variant: XalConstants.cssClasses.bootstrapVariant.danger,
         buttonOverrides: {
             delete: {
                 action: async () => deleteIntegrationRequest(deleteUrl, context, recordLabel),
@@ -165,7 +165,7 @@ async function confirmDeleteSelected(trigger) {
         dismissible: false,
         showCloseButton: false,
         preset: 'deleteConfirmation',
-        variant: XalConstants.cssClasses.modal.variant.danger,
+        variant: XalConstants.cssClasses.bootstrapVariant.danger,
         buttonOverrides: {
             delete: {
                 action: async () => deleteSelectedIntegrationRequests(deleteUrl, table, selectedRequests),
@@ -301,7 +301,7 @@ async function showBulkDeletionSummary(summaryView) {
         title: 'Résultat de la suppression',
         content: summaryView,
         size: 'lg',
-        variant: 'warning',
+        variant: XalConstants.cssClasses.bootstrapVariant.warning,
         dismissible: false,
         showCloseButton: false,
         preset: 'information',
@@ -343,7 +343,7 @@ async function showSearchRefreshRetryDialog(table, message) {
         title: 'Liste non actualisée',
         content: message,
         contentClasses: [XalConstants.cssClasses.text.justify],
-        variant: 'warning',
+        variant: XalConstants.cssClasses.bootstrapVariant.warning,
         preset: 'confirmation',
         buttonOverrides: {
             confirm: {
@@ -458,7 +458,7 @@ async function showIntegrationFailure(trigger) {
     await XalDialog.show({
         title: `Échec du transport - Demande ${context.value}`,
         content: details.content,
-        variant: 'danger',
+        variant: XalConstants.cssClasses.bootstrapVariant.danger,
         dismissible: false,
         buttons: [
             {

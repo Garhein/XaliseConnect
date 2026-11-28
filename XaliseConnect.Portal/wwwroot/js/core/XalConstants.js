@@ -59,8 +59,6 @@ export const XalConstants = Object.freeze({
      * Identifiants des éléments uniques du DOM.
      */
     elementIds: Object.freeze({
-        toastTemplateFeedback: 'xal-id-toast-template-feedback',
-
         otp: Object.freeze({
             countdownTimer:         'xal-id-otp-countdown-timer',
             countdownProgress:      'xal-id-otp-countdown-progress',
@@ -91,15 +89,6 @@ export const XalConstants = Object.freeze({
 
         bootstrap: Object.freeze({
             togglePopover: '[data-bs-toggle="popover"]',
-        }),
-
-        toast: Object.freeze({
-            container:          '.toast-container',
-            header:             '.toast-header',
-            xalToast:           '.xal-toast',
-            xalToastIcon:       '.xal-toast__icon',
-            xalToastLabel:      '.xal-toast__label',
-            xalToastMessage:    '.xal-toast__message',
         }),
 
         form: Object.freeze({
@@ -212,15 +201,15 @@ export const XalConstants = Object.freeze({
             outlineSecondary:   'btn-outline-secondary',
         }),
 
+        bootstrapVariant: Object.freeze({
+            success: 'success',
+            danger:  'danger',
+            warning: 'warning',
+            info:    'info',
+        }),
+
         modal: Object.freeze({
             xalHeaderDefault: 'xal-modal__header--default',
-
-            variant: Object.freeze({
-                success:    'success',
-                danger:     'danger',
-                warning:    'warning',
-                info:       'info',
-            }),
         }),
 
         form: Object.freeze({
